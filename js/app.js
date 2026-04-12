@@ -22,40 +22,61 @@
   let editingSongId = null;
   let playedCountThisSession = 0;
   let arrivedViaQR  = false; // voter gelockt aan gig via QR-link
-  let voterAuthUser = null;  // ingelogde voter (Supabase auth user)
+  let voterAuthUser    = null;  // ingelogde voter (Supabase auth user)
+  let voterPendingEmail = '';   // e-mail tijdens OTP verificatie
 
   // ════════════════════════════════════════════
   // VOTER AUTH — MAGIC LINK
   // ════════════════════════════════════════════
   function showVoterScreen(name) {
-    ['choice','quick','email','sent','newname'].forEach(s => {
+    ['choice','quick','email','code','newname'].forEach(s => {
       const el = document.getElementById('voter-screen-' + s);
       if (el) el.style.display = s === name ? 'block' : 'none';
     });
-    if (name === 'quick')  document.getElementById('voter-name')?.focus();
-    if (name === 'email')  document.getElementById('voter-email')?.focus();
+    if (name === 'quick')   document.getElementById('voter-name')?.focus();
+    if (name === 'email')   document.getElementById('voter-email')?.focus();
+    if (name === 'code')    { const c = document.getElementById('voter-otp-code'); if(c){c.value='';c.focus();} }
     if (name === 'newname') document.getElementById('voter-account-name')?.focus();
   }
 
-  async function sendVoterMagicLink() {
-    const emailEl = document.getElementById('voter-email');
-    const email = emailEl?.value.trim();
+  async function sendVoterOTP() {
+    const email = document.getElementById('voter-email')?.value.trim();
     if (!email || !email.includes('@')) {
       showToast('Vul een geldig e-mailadres in', 'error');
       return;
     }
-    const gigToken = selectedVoterGig?.qr_token || selectedVoterGig?.id || '';
-    const redirectTo = gigToken
-      ? `https://jukestage.live/?gig=${gigToken}`
-      : 'https://jukestage.live/';
-
     const { error } = await db.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: redirectTo, data: { role: 'voter' } }
+      options: { shouldCreateUser: true }
     });
     if (error) { showToast('Fout: ' + error.message, 'error'); return; }
-    localStorage.setItem('voter_magic_pending', '1');
-    showVoterScreen('sent');
+    voterPendingEmail = email;
+    showVoterScreen('code');
+  }
+
+  async function verifyVoterOTP() {
+    const code = document.getElementById('voter-otp-code')?.value.trim();
+    if (!code || code.length < 6) {
+      showToast('Vul de 6-cijferige code in', 'error');
+      return;
+    }
+    const { data, error } = await db.auth.verifyOtp({
+      email: voterPendingEmail,
+      token: code,
+      type: 'email'
+    });
+    if (error) { showToast('Ongeldige of verlopen code', 'error'); return; }
+    voterAuthUser = data.user;
+
+    const { data: profile } = await db.from('voter_profiles')
+      .select('display_name').eq('id', data.user.id).single();
+    if (profile) {
+      await _enterAsVoterWithAuth(profile.display_name);
+    } else {
+      const prefill = document.getElementById('voter-account-name');
+      if (prefill) prefill.value = data.user.email?.split('@')[0] || '';
+      showVoterScreen('newname');
+    }
   }
 
   async function saveVoterProfile() {
@@ -94,38 +115,11 @@
     subscribeRealtime();
   }
 
-  // Magic link callback — Supabase stuurt SIGNED_IN event na klik op link
-  db.auth.onAuthStateChange(async (event, session) => {
-    if (event !== 'SIGNED_IN' || !session) return;
-    if (!localStorage.getItem('voter_magic_pending')) return;
-    localStorage.removeItem('voter_magic_pending');
-    voterAuthUser = session.user;
-
-    // Zorg dat de gig bekend is (URL token)
-    if (!selectedVoterGig) await checkGigUrl();
-    if (!selectedVoterGig) {
-      showView('view-voter-landing');
-      document.getElementById('voter-name-area').style.display = 'block';
-      document.getElementById('voter-gig-pick-area').style.display = 'none';
-    }
-
-    // Check bestaand profiel
-    const { data: profile } = await db.from('voter_profiles')
-      .select('display_name').eq('id', session.user.id).single();
-
-    if (profile) {
-      await _enterAsVoterWithAuth(profile.display_name);
-    } else {
-      // Nieuw account — naam vragen
-      showView('view-voter-landing');
-      document.getElementById('voter-name-area').style.display = 'block';
-      document.getElementById('voter-gig-pick-area').style.display = 'none';
-      const backBtn = document.getElementById('voter-back-btn');
-      if (backBtn) backBtn.style.display = 'none';
-      // Pre-fill naam uit email indien beschikbaar
-      const prefill = document.getElementById('voter-account-name');
-      if (prefill) prefill.value = session.user.email?.split('@')[0] || '';
-      showVoterScreen('newname');
+  // OTP verificatie wordt afgehandeld in verifyVoterOTP()
+  // onAuthStateChange alleen nodig voor artist session herstel
+  db.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      currentUser = null; currentGig = null; voterAuthUser = null;
     }
   });
 

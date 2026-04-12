@@ -114,21 +114,32 @@
           <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="showVoterScreen('choice')">&#8592; Terug</button>
         </div>
 
-        <!-- Screen 3: Magic link e-mail invoer -->
+        <!-- Screen 3: E-mailadres invoeren -->
         <div id="voter-screen-email" style="display:none;">
           <div class="input-group">
             <label class="input-label">E-mailadres</label>
             <input type="email" class="input-field" placeholder="jij@voorbeeld.nl" id="voter-email" autocomplete="email">
           </div>
-          <button class="btn btn-primary btn-full" onclick="sendVoterMagicLink()">Stuur inloglink &#8594;</button>
+          <button class="btn btn-primary btn-full" onclick="sendVoterOTP()">Stuur code &#8594;</button>
           <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="showVoterScreen('choice')">&#8592; Terug</button>
         </div>
 
-        <!-- Screen 4: Link verstuurd -->
-        <div id="voter-screen-sent" style="display:none;text-align:center;padding:20px 0;">
-          <div style="font-size:36px;margin-bottom:12px;">📬</div>
-          <div style="font-family:var(--font-display);font-size:20px;color:var(--neon2);margin-bottom:8px;">Check je e-mail!</div>
-          <div style="font-family:var(--font-retro);font-size:12px;color:var(--muted);line-height:1.6;">Klik de link in de e-mail<br>om in te loggen.</div>
+        <!-- Screen 4: Code invoeren -->
+        <div id="voter-screen-code" style="display:none;">
+          <div style="text-align:center;margin-bottom:18px;">
+            <div style="font-size:32px;margin-bottom:8px;">📬</div>
+            <div style="font-family:var(--font-display);font-size:18px;color:var(--neon2);margin-bottom:6px;">Check je e-mail</div>
+            <div style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">We hebben een 6-cijferige code gestuurd</div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Inlogcode</label>
+            <input type="text" class="input-field" placeholder="123456"
+              id="voter-otp-code" maxlength="6" inputmode="numeric" autocomplete="one-time-code"
+              style="font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--font-mono);">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="verifyVoterOTP()">Inloggen &#8594;</button>
+          <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="sendVoterOTP()">Code opnieuw sturen</button>
+          <button class="btn btn-ghost btn-full" style="margin-top:2px;" onclick="showVoterScreen('email')">&#8592; Ander e-mailadres</button>
         </div>
 
         <!-- Screen 5: Nieuw account — naam kiezen -->
