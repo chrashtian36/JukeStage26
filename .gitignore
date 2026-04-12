@@ -1,1 +1,19 @@
+# Vercel
 .vercel
+
+# Claude Code lokale instellingen
+.claude/
+
+# Oude/verouderde CSS
+css/main.css
+
+# Databestanden
+*.csv
+*.xlsx
+*.pdf
+
+# Supabase tijdelijke bestanden
+supabase/.temp/
+
+# Python scripts (lokaal gebruik)
+Import songs.py
