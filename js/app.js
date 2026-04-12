@@ -2417,6 +2417,7 @@
   if (currentLang !== 'nl') setLang(currentLang);
 
   (async () => {
+    try {
     // Check URL voor gig token
     await checkGigUrl();
 
@@ -2474,6 +2475,11 @@
       } else {
         // Geen gig in URL — toon voter landing zodat ze er één kunnen kiezen
         showView('view-voter-landing');
+        await loadLiveGigs();
       }
+    }
+    } catch (e) {
+      console.error('Init fout:', e);
+      showView('view-landing'); // fallback: toon landingspagina bij elke fout
     }
   })();
