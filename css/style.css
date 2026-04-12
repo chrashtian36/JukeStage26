@@ -927,8 +927,8 @@
 
     .login-title {
       font-family: var(--font-display);
-      font-size: 72px;
-      letter-spacing: 6px;
+      font-size: clamp(36px, 12vw, 72px);
+      letter-spacing: clamp(2px, 1.2vw, 6px);
       background: linear-gradient(135deg, var(--neon2), var(--neon), var(--neon3));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
