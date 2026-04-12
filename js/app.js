@@ -20,7 +20,8 @@
   let realtimeChannel    = null;
   let allSongs      = [];
   let editingSongId = null;
-  let playedCountThisSession = 0; // punt 10: teller bewaren in geheugen
+  let playedCountThisSession = 0;
+  let arrivedViaQR = false; // voter gelockt aan gig via QR-link
 
   // ════════════════════════════════════════════
   // VIEW ROUTING
@@ -114,6 +115,7 @@
     const gigToken = !ignoreToken && (params.get('gig') || params.get('token'));
 
     if (gigToken) {
+      arrivedViaQR = true;
       try {
         const { data: gigData } = await db.from('gigs').select('*').eq('qr_token', gigToken).single();
         if (gigData && gigData.status !== 'finished') { selectVoterGig(gigData); return; }
@@ -166,13 +168,16 @@
     const venueEl = document.getElementById('voter-selected-gig-venue');
     if (nameEl)  nameEl.textContent  = gig.name || 'Live vanavond';
     if (venueEl) venueEl.textContent = (gig.venue && gig.name !== gig.venue) ? '📍 ' + gig.venue : '';
+    // Verberg terugknop als voter via QR-link is binnengekomen
+    const backBtn = document.querySelector('#voter-name-area button[onclick="backToGigPick()"]');
+    if (backBtn) backBtn.style.display = arrivedViaQR ? 'none' : '';
   }
 
   function backToGigPick() {
+    if (arrivedViaQR) return; // gelockt aan gig via QR — niet terug
     selectedVoterGig = null;
     document.getElementById('voter-gig-pick-area').style.display = 'block';
     document.getElementById('voter-name-area').style.display = 'none';
-    // Herlaad de giglijst zonder QR-token zodat de gebruiker kan kiezen
     loadLiveGigs(true);
   }
 
