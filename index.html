@@ -81,19 +81,65 @@
       </div>
       <!-- Naam + enter: verschijnt na gig-keuze -->
       <div id="voter-name-area" style="display:none;">
+        <!-- Gig banner -->
         <div style="background:rgba(255,107,0,0.08);border:1px solid rgba(255,107,0,0.3);border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
           <div style="flex:1;">
             <div style="font-family:var(--font-retro);font-size:9px;letter-spacing:3px;color:var(--neon);text-transform:uppercase;">Je gaat naar</div>
             <div style="font-family:var(--font-display);font-size:19px;letter-spacing:1px;color:var(--text);margin-top:2px;" id="voter-selected-gig-name"></div>
             <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);margin-top:2px;" id="voter-selected-gig-venue"></div>
           </div>
-          <button onclick="backToGigPick()" style="background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--font-retro);font-size:11px;padding:5px 9px;border-radius:6px;">&#x2715;</button>
+          <button onclick="backToGigPick()" id="voter-back-btn" style="background:none;border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:var(--font-retro);font-size:11px;padding:5px 9px;border-radius:6px;">&#x2715;</button>
         </div>
-        <div class="input-group">
-          <label class="input-label" id="lbl-your-name">Jouw naam *</label>
-          <input type="text" class="input-field" placeholder="bijv. Sarah" id="voter-name" data-i18n-ph="ph-voter-name" maxlength="30" required>
+
+        <!-- Screen 1: Keuze snel vs inloggen -->
+        <div id="voter-screen-choice">
+          <button class="btn btn-primary btn-full" style="margin-bottom:10px;" onclick="showVoterScreen('quick')">
+            Snel meedoen
+            <span style="font-size:10px;opacity:0.7;display:block;font-family:var(--font-body);text-transform:none;letter-spacing:0;margin-top:2px;">Vul alleen je naam in</span>
+          </button>
+          <div style="text-align:center;font-family:var(--font-retro);font-size:10px;color:var(--muted);letter-spacing:2px;margin:10px 0;">── OF ──</div>
+          <button class="btn btn-secondary btn-full" onclick="showVoterScreen('email')">
+            Inloggen / Account aanmaken
+            <span style="font-size:10px;opacity:0.7;display:block;font-family:var(--font-body);text-transform:none;letter-spacing:0;margin-top:2px;">Bewaar je stemgeschiedenis</span>
+          </button>
         </div>
-        <button class="btn btn-primary btn-full" onclick="enterAsVoter()" id="btn-enter-jukebox"><span id="lbl-enter-jukebox">Ga naar de Jukebox &#8594;</span></button>
+
+        <!-- Screen 2: Snel meedoen (naam) -->
+        <div id="voter-screen-quick" style="display:none;">
+          <div class="input-group">
+            <label class="input-label" id="lbl-your-name">Jouw naam *</label>
+            <input type="text" class="input-field" placeholder="bijv. Sarah" id="voter-name" data-i18n-ph="ph-voter-name" maxlength="30" autocomplete="nickname">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="enterAsVoter()" id="btn-enter-jukebox"><span id="lbl-enter-jukebox">Ga naar de Jukebox &#8594;</span></button>
+          <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="showVoterScreen('choice')">&#8592; Terug</button>
+        </div>
+
+        <!-- Screen 3: Magic link e-mail invoer -->
+        <div id="voter-screen-email" style="display:none;">
+          <div class="input-group">
+            <label class="input-label">E-mailadres</label>
+            <input type="email" class="input-field" placeholder="jij@voorbeeld.nl" id="voter-email" autocomplete="email">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="sendVoterMagicLink()">Stuur inloglink &#8594;</button>
+          <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="showVoterScreen('choice')">&#8592; Terug</button>
+        </div>
+
+        <!-- Screen 4: Link verstuurd -->
+        <div id="voter-screen-sent" style="display:none;text-align:center;padding:20px 0;">
+          <div style="font-size:36px;margin-bottom:12px;">📬</div>
+          <div style="font-family:var(--font-display);font-size:20px;color:var(--neon2);margin-bottom:8px;">Check je e-mail!</div>
+          <div style="font-family:var(--font-retro);font-size:12px;color:var(--muted);line-height:1.6;">Klik de link in de e-mail<br>om in te loggen.</div>
+        </div>
+
+        <!-- Screen 5: Nieuw account — naam kiezen -->
+        <div id="voter-screen-newname" style="display:none;">
+          <div style="font-family:var(--font-retro);font-size:11px;color:var(--neon2);margin-bottom:14px;letter-spacing:1px;">Welkom! Hoe wil je heten?</div>
+          <div class="input-group">
+            <label class="input-label">Jouw naam *</label>
+            <input type="text" class="input-field" placeholder="bijv. Sarah" id="voter-account-name" maxlength="30" autocomplete="nickname">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="saveVoterProfile()">Opslaan &amp; doorgaan &#8594;</button>
+        </div>
       </div>
     </div>
   </div>

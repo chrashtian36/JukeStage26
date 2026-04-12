@@ -21,7 +21,113 @@
   let allSongs      = [];
   let editingSongId = null;
   let playedCountThisSession = 0;
-  let arrivedViaQR = false; // voter gelockt aan gig via QR-link
+  let arrivedViaQR  = false; // voter gelockt aan gig via QR-link
+  let voterAuthUser = null;  // ingelogde voter (Supabase auth user)
+
+  // ════════════════════════════════════════════
+  // VOTER AUTH — MAGIC LINK
+  // ════════════════════════════════════════════
+  function showVoterScreen(name) {
+    ['choice','quick','email','sent','newname'].forEach(s => {
+      const el = document.getElementById('voter-screen-' + s);
+      if (el) el.style.display = s === name ? 'block' : 'none';
+    });
+    if (name === 'quick')  document.getElementById('voter-name')?.focus();
+    if (name === 'email')  document.getElementById('voter-email')?.focus();
+    if (name === 'newname') document.getElementById('voter-account-name')?.focus();
+  }
+
+  async function sendVoterMagicLink() {
+    const emailEl = document.getElementById('voter-email');
+    const email = emailEl?.value.trim();
+    if (!email || !email.includes('@')) {
+      showToast('Vul een geldig e-mailadres in', 'error');
+      return;
+    }
+    const gigToken = selectedVoterGig?.qr_token || selectedVoterGig?.id || '';
+    const redirectTo = gigToken
+      ? `https://jukestage.live/?gig=${gigToken}`
+      : 'https://jukestage.live/';
+
+    const { error } = await db.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirectTo, data: { role: 'voter' } }
+    });
+    if (error) { showToast('Fout: ' + error.message, 'error'); return; }
+    localStorage.setItem('voter_magic_pending', '1');
+    showVoterScreen('sent');
+  }
+
+  async function saveVoterProfile() {
+    const name = document.getElementById('voter-account-name')?.value.trim();
+    if (!name) { showToast('Vul je naam in', 'error'); return; }
+    if (!voterAuthUser) { showToast('Sessie verlopen, probeer opnieuw', 'error'); return; }
+    const { error } = await db.from('voter_profiles')
+      .insert({ id: voterAuthUser.id, display_name: name });
+    if (error && error.code !== '23505') { // 23505 = already exists
+      showToast('Opslaan mislukt: ' + error.message, 'error'); return;
+    }
+    await _enterAsVoterWithAuth(name);
+  }
+
+  async function _enterAsVoterWithAuth(overrideName) {
+    const gig = selectedVoterGig;
+    if (!gig) { showToast('Gig niet gevonden', 'error'); return; }
+    let displayName = overrideName;
+    if (!displayName && voterAuthUser) {
+      const { data: profile } = await db.from('voter_profiles')
+        .select('display_name').eq('id', voterAuthUser.id).single();
+      displayName = profile?.display_name;
+    }
+    if (!displayName) { showVoterScreen('newname'); return; }
+    currentGig = gig;
+    const { data: sess } = await db.from('voter_sessions')
+      .insert({ gig_id: gig.id, display_name: displayName, auth_user_id: voterAuthUser?.id || null })
+      .select('*').single();
+    voterSession = sess;
+    showView('view-voter');
+    loadVoterGigInfo();
+    loadVoterQueue();
+    loadVoterSongs();
+    loadVoterMessages();
+    loadVoterComments();
+    subscribeRealtime();
+  }
+
+  // Magic link callback — Supabase stuurt SIGNED_IN event na klik op link
+  db.auth.onAuthStateChange(async (event, session) => {
+    if (event !== 'SIGNED_IN' || !session) return;
+    if (!localStorage.getItem('voter_magic_pending')) return;
+    localStorage.removeItem('voter_magic_pending');
+    voterAuthUser = session.user;
+
+    // Zorg dat de gig bekend is (URL token)
+    if (!selectedVoterGig) await checkGigUrl();
+    if (!selectedVoterGig) {
+      showView('view-voter-landing');
+      document.getElementById('voter-name-area').style.display = 'block';
+      document.getElementById('voter-gig-pick-area').style.display = 'none';
+    }
+
+    // Check bestaand profiel
+    const { data: profile } = await db.from('voter_profiles')
+      .select('display_name').eq('id', session.user.id).single();
+
+    if (profile) {
+      await _enterAsVoterWithAuth(profile.display_name);
+    } else {
+      // Nieuw account — naam vragen
+      showView('view-voter-landing');
+      document.getElementById('voter-name-area').style.display = 'block';
+      document.getElementById('voter-gig-pick-area').style.display = 'none';
+      const backBtn = document.getElementById('voter-back-btn');
+      if (backBtn) backBtn.style.display = 'none';
+      // Pre-fill naam uit email indien beschikbaar
+      const prefill = document.getElementById('voter-account-name');
+      if (prefill) prefill.value = session.user.email?.split('@')[0] || '';
+      showVoterScreen('newname');
+    }
+  });
 
   // ════════════════════════════════════════════
   // VIEW ROUTING
@@ -168,9 +274,11 @@
     const venueEl = document.getElementById('voter-selected-gig-venue');
     if (nameEl)  nameEl.textContent  = gig.name || 'Live vanavond';
     if (venueEl) venueEl.textContent = (gig.venue && gig.name !== gig.venue) ? '📍 ' + gig.venue : '';
-    // Verberg terugknop als voter via QR-link is binnengekomen
-    const backBtn = document.querySelector('#voter-name-area button[onclick="backToGigPick()"]');
+    const backBtn = document.getElementById('voter-back-btn');
     if (backBtn) backBtn.style.display = arrivedViaQR ? 'none' : '';
+    // Al ingelogd als voter → direct doorgaan
+    if (voterAuthUser) { _enterAsVoterWithAuth(); return; }
+    showVoterScreen('choice');
   }
 
   function backToGigPick() {
@@ -2315,28 +2423,33 @@
   if (currentLang !== 'nl') setLang(currentLang);
 
   (async () => {
-    // Check URL voor gig token (punt 2 & 12)
-    checkGigUrl();
+    // Check URL voor gig token
+    await checkGigUrl();
 
     const { data: { session } } = await db.auth.getSession();
-    if (session) {
-      let { data: _uRows2 } = await db.from('users')
-        .select('id, role, display_name, auth_id').eq('auth_id', session.user.id).limit(1);
-      let _userData2 = _uRows2?.[0] || null;
-      if (!_userData2) {
-        const { data: _uByEmail2 } = await db.from('users')
-          .select('id, role, display_name, auth_id').eq('email', session.user.email).limit(1);
-        _userData2 = _uByEmail2?.[0] || null;
-        if (_userData2 && !_userData2.auth_id) {
-          await db.from('users').update({ auth_id: session.user.id }).eq('id', _userData2.id);
-        }
+    if (!session) return;
+
+    // Probeer eerst artist/admin login
+    let { data: _uRows2 } = await db.from('users')
+      .select('id, role, display_name, auth_id').eq('auth_id', session.user.id).limit(1);
+    let _userData2 = _uRows2?.[0] || null;
+    if (!_userData2) {
+      const { data: _uByEmail2 } = await db.from('users')
+        .select('id, role, display_name, auth_id').eq('email', session.user.email).limit(1);
+      _userData2 = _uByEmail2?.[0] || null;
+      if (_userData2 && !_userData2.auth_id) {
+        await db.from('users').update({ auth_id: session.user.id }).eq('id', _userData2.id);
       }
+    }
+
+    if (_userData2) {
+      // Artist / admin login
       currentUser = {
         ...session.user,
-        id: _userData2?.id,
+        id: _userData2.id,
         auth_id: session.user.id,
-        role: _userData2?.role || 'artist',
-        name: _userData2?.display_name || session.user.email
+        role: _userData2.role || 'artist',
+        name: _userData2.display_name || session.user.email
       };
       const badge = document.getElementById('artist-role-badge');
       badge.textContent = currentUser.role === 'admin' ? 'ADMIN' : 'ARTIEST';
@@ -2344,8 +2457,6 @@
       if (currentUser.role === 'admin') {
         document.getElementById('admin-direct-add').style.display = 'block';
       }
-
-      // Laad gespeeld teller vanuit DB (punt 10)
       showView('view-artist');
       await loadArtistData();
 
@@ -2354,6 +2465,21 @@
           .select('*', { count: 'exact', head: true })
           .eq('gig_id', currentGig.id).eq('status', 'played');
         if (count) document.getElementById('stat-played').textContent = count;
+      }
+      return; // artist login afgehandeld
+    }
+
+    // Geen artist gevonden — check voter profiel (gecachede login)
+    const { data: voterProfile } = await db.from('voter_profiles')
+      .select('display_name').eq('id', session.user.id).single();
+    if (voterProfile) {
+      voterAuthUser = session.user;
+      if (selectedVoterGig) {
+        // Gig al bekend via QR — direct doorgaan
+        await _enterAsVoterWithAuth(voterProfile.display_name);
+      } else {
+        // Geen gig in URL — toon voter landing zodat ze er één kunnen kiezen
+        showView('view-voter-landing');
       }
     }
   })();
