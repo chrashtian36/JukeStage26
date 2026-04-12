@@ -23,989 +23,6 @@
   let playedCountThisSession = 0; // punt 10: teller bewaren in geheugen
 
   // ════════════════════════════════════════════
-  // MEERTALIGHEID (punt 8)
-  // ════════════════════════════════════════════
-  const translations = {
-    nl: {
-      'lbl-role-choice': 'BEN JE BEZOEKER OF ARTIEST?',
-      'lbl-visitor': 'Bezoeker — Aanvragen & Stemmen',
-      'lbl-artist': 'Artiest / DJ Inloggen',
-      'lbl-login-title': 'Inloggen',
-      'lbl-email': 'E-mailadres',
-      'lbl-password': 'Wachtwoord',
-      'lbl-do-login': 'Inloggen',
-      'lbl-back': 'Terug',
-      'lbl-voter-subtitle': '✦ Vraag jouw nummer aan ✦',
-      'lbl-tonight': 'VANAVOND LIVE',
-      'lbl-your-name': 'Jouw naam (optioneel)',
-      'lbl-enter-jukebox': 'Ga naar de Jukebox →',
-      'lbl-now-playing': 'Nu Speelt',
-      'itab-queue': 'Wachtrij',
-      'itab-myrequests': 'Mijn Aanvragen',
-      'itab-request': 'Aanvragen',
-      'itab-messages': 'Berichten',
-      'itab-comments': 'Reviews',
-      'btab-queue': 'Wachtrij',
-      'btab-search': 'Zoeken',
-      'btab-mine': 'Mijn',
-      'btab-messages': 'Berichten',
-      'btab-reviews': 'Reviews',
-      'lbl-queue-title': 'Wachtrij',
-      'lbl-send-msg': 'Stuur een Bericht',
-      'lbl-msg-label': 'Jouw berichtje aan de artiest',
-      'lbl-send-msg-btn': 'Versturen',
-      'lbl-review-title': 'LAAT EEN REVIEW ACHTER',
-      'lbl-review-name': 'Jouw naam *',
-      'lbl-review-song': 'Over welk nummer? (optioneel)',
-      'lbl-rating': 'Beoordeling',
-      'lbl-review-text': 'Je reactie',
-      'lbl-submit-review-btn': 'Review Plaatsen',
-      'lbl-reviews-title': 'Reviews',
-      'lbl-req-msg': 'Berichtje (optioneel)',
-      'lbl-cancel-btn': 'Annuleren',
-      'btn-request-text': 'Aanvragen!',
-      'lbl-tagline': '✦ Live Muziek op het Podium ✦',
-      'lbl-now-playing-empty': 'Nog niets aan het spelen',
-      'lbl-no-messages-voter': 'Nog geen berichten',
-      'lbl-no-requests': 'Je hebt nog geen nummers aangevraagd',
-      'voter-logo-sub': '\u2756 Live Muziek \u2756',
-      'artist-logo-sub': '\u2756 Artiest Panel \u2756',
-      'divider-myrequests': 'Mijn Aanvragen',
-      'ph-email': 'jij@voorbeeld.nl',
-      'ph-voter-name': 'bijv. Sarah',
-      'ph-search-song': 'Zoek een nummer of artiest...',
-      'ph-msg-text': 'bijv. \"Kun je iets van The Beatles spelen? \ud83c\udfb8\"',
-      'ph-required': 'Verplicht',
-      'ph-comment-text': 'Wat vond je van het optreden?',
-      'ph-search-songbook': 'Zoek in je songbook...',
-      'ph-gig-name': 'Naam van het optreden',
-      'ph-gig-venue': 'Caf\u00e9, Zaal, etc.',
-      'ph-song-title': 'Naam van het nummer',
-      'ph-song-artist': 'bijv. Eagles',
-      'ph-new-gig-name': 'bijv. Vrijdagavond in Caf\u00e9 de Zon',
-      'ph-new-gig-venue': 'Caf\u00e9, Zaal, etc.',
-      'status-pending': '\u23f3 In behandeling',
-      'status-approved': '\u2713 Goedgekeurd',
-      'status-queued': '\ud83c\udfb5 In wachtrij',
-      'status-playing': '\u25b6 Wordt gespeeld',
-      'status-played': '\u2713 Gespeeld',
-      'status-rejected': '\u2717 Afgewezen',
-      'empty-queue-artist': 'Wachtrij is leeg. Keur aanvragen goed om te beginnen.',
-      'empty-queue-voter': 'Wachtrij is leeg. Vraag als eerste een nummer aan!',
-      'empty-requests': 'Geen nieuwe aanvragen',
-      'empty-songs': 'Geen nummers beschikbaar',
-      'empty-songbook': 'Geen nummers in je songbook',
-      'empty-messages': 'Nog geen berichten',
-      'empty-history': 'Nog geen gig historie',
-      'empty-reviews': 'Nog geen reviews',
-      'lbl-approve': '\u2713 Goedkeuren',
-      'lbl-reject': '\u2717 Afwijzen',
-      'lbl-played': '\u2713 Gespeeld',
-      'lbl-votes': 'stemmen',
-      'lbl-requested-by': 'Aangevraagd door',
-      'lbl-anonymous': 'Anoniem',
-      'lbl-new': 'nieuw',
-      'lbl-no-active-gig': 'Geen actieve gig',
-      'confirm-close-gig': 'Wil je de gig echt afsluiten?',
-      'lbl-close-gig': 'Gig Afsluiten',
-      'lbl-activate-gig': 'Activeer',
-      'lbl-gig-artists': 'Artiesten',
-      'lbl-settings-artists': 'Artiesten',
-      'lbl-create-one': 'maak er een aan',
-      'lbl-logout': 'Uit',
-      'stat-lbl-queue': 'Wachtrij',
-      'stat-lbl-played': 'Gespeeld',
-      'stat-lbl-messages': 'Berichten',
-      'atab-lbl-queue': 'Wachtrij',
-      'atab-lbl-requests': 'Aanvragen',
-      'atab-lbl-songbook': 'Songbook',
-      'atab-lbl-history': 'Historie',
-      'atab-lbl-settings': 'Instellingen',
-      'lbl-live-queue-header': 'Live Wachtrij — versleep om te sorteren',
-      'lbl-new-requests-header': 'Nieuwe Aanvragen',
-      'lbl-new-gig-banner-title': 'Nieuwe Gig Aanmaken',
-      'lbl-new-gig-banner-sub': 'Start een nieuw optreden',
-      'btn-new-gig': '+ Nieuwe Gig',
-      'lbl-my-songbook': 'Mijn Songbook',
-      'btn-add-song': '+ Nummer',
-      'lbl-inbox-header': 'Berichten van Bezoekers',
-      'btn-all-read': 'Alles gelezen',
-      'lbl-history-header': 'Gig Historie',
-      'lbl-settings-header': 'Gig Instellingen',
-      'lbl-gig-naam': 'Gig Naam',
-      'lbl-locatie': 'Locatie',
-      'lbl-allow-requests': 'Aanvragen toestaan',
-      'lbl-allow-requests-sub': 'Publiek kan nummers aanvragen',
-      'lbl-allow-votes': 'Stemmen toestaan',
-      'lbl-allow-votes-sub': 'Publiek kan stemmen op aanvragen',
-      'lbl-show-karaoke': 'Lyrics optie tonen',
-      'lbl-show-karaoke-sub': 'Lyrics badge zichtbaar voor publiek',
-      'lbl-gig-live': 'Gig is LIVE',
-      'lbl-gig-live-sub': 'Zichtbaar voor publiek via QR-code',
-      'lbl-qr-label': 'QR-Code & Link',
-      'btn-copy-link': 'Link Kopiëren',
-      'btn-download-qr': 'QR Downloaden',
-      'btn-save-settings': 'Instellingen Opslaan',
-      'abtab-lbl-live': 'Live',
-      'abtab-lbl-requests': 'Aanvragen',
-      'abtab-lbl-songbook': 'Songbook',
-      'abtab-lbl-inbox': 'Inbox',
-      'abtab-lbl-settings': 'Instellingen',
-      'lbl-modal-request-title': 'Nummer Aanvragen',
-      'lbl-modal-song-title': 'Nummer Toevoegen',
-      'lbl-song-title-label': 'Titel *',
-      'lbl-song-artist-label': 'Originele Artiest *',
-      'lbl-song-key': 'Toonsoort',
-      'lbl-song-ug': 'Ultimate Guitar URL',
-      'lbl-song-karaoke-url': 'Lyrics URL (optioneel)',
-      'lbl-song-karaoke-toggle': 'Lyrics beschikbaar',
-      'btn-cancel-song': 'Annuleren',
-      'btn-save-song': 'Opslaan',
-      'lbl-gig-detail': 'Gig Detail',
-      'btn-close-history': 'Sluiten',
-      'lbl-new-gig-modal-title': 'Nieuwe Gig Aanmaken',
-      'lbl-new-gig-naam': 'Gig Naam *',
-      'lbl-new-gig-locatie': 'Locatie',
-      'lbl-new-gig-datum': 'Datum',
-      'btn-cancel-new-gig': 'Annuleren',
-      'btn-create-gig': 'Gig Aanmaken',
-      'lbl-admin-add': 'Direct toevoegen aan wachtrij',
-      'lbl-choose-song': '— Kies een nummer —',
-      'btn-add-to-queue': '+ Wachtrij',
-      'toast-request-sent': 'Aanvraag verzonden! 🎵',
-      'toast-voted': 'Stem uitgebracht! ❤️',
-      'toast-welcome-back': 'Welkom terug! 🎸',
-      'toast-order-updated': 'Volgorde aangepast ✓',
-      'toast-gig-offline': 'Gig offline gezet',
-      'toast-gig-live': 'Gig is nu LIVE! 🎸',
-      'opt-general-review': '— Algemene review over het optreden —',
-      'toast-gig-switched': 'Gig gewisseld ✓',
-      'toast-gig-closed': 'Gig afgesloten ✓',
-    },
-    en: {
-      'lbl-role-choice': 'ARE YOU A VISITOR OR ARTIST?',
-      'lbl-visitor': 'Visitor — Request & Vote',
-      'lbl-artist': 'Artist / DJ Login',
-      'lbl-login-title': 'Login',
-      'lbl-email': 'Email address',
-      'lbl-password': 'Password',
-      'lbl-do-login': 'Login',
-      'lbl-back': 'Back',
-      'lbl-voter-subtitle': '✦ Request your song ✦',
-      'lbl-tonight': 'TONIGHT LIVE',
-      'lbl-your-name': 'Your name (optional)',
-      'lbl-enter-jukebox': 'Enter the Jukebox →',
-      'lbl-now-playing': 'Now Playing',
-      'itab-queue': 'Queue',
-      'itab-myrequests': 'My Requests',
-      'itab-request': 'Request',
-      'itab-messages': 'Messages',
-      'itab-comments': 'Reviews',
-      'btab-queue': 'Queue',
-      'btab-search': 'Search',
-      'btab-mine': 'Mine',
-      'btab-messages': 'Messages',
-      'btab-reviews': 'Reviews',
-      'lbl-queue-title': 'Queue',
-      'lbl-send-msg': 'Send a Message',
-      'lbl-msg-label': 'Your message to the artist',
-      'lbl-send-msg-btn': 'Send',
-      'lbl-review-title': 'LEAVE A REVIEW',
-      'lbl-review-name': 'Your name *',
-      'lbl-review-song': 'About which song? (optional)',
-      'lbl-rating': 'Rating',
-      'lbl-review-text': 'Your review',
-      'lbl-submit-review-btn': 'Post Review',
-      'lbl-reviews-title': 'Reviews',
-      'lbl-req-msg': 'Message (optional)',
-      'lbl-cancel-btn': 'Cancel',
-      'btn-request-text': 'Request!',
-      'lbl-tagline': '✦ Live Music on Stage ✦',
-      'lbl-now-playing-empty': 'Nothing playing yet',
-      'lbl-no-messages-voter': 'No messages yet',
-      'lbl-no-requests': 'You have not requested any songs yet',
-      'voter-logo-sub': '\u2756 Live Music \u2756',
-      'artist-logo-sub': '\u2756 Artist Panel \u2756',
-      'divider-myrequests': 'My Requests',
-      'ph-email': 'you@example.com',
-      'ph-voter-name': 'e.g. Sarah',
-      'ph-search-song': 'Search a song or artist...',
-      'ph-msg-text': 'e.g. \"Can you play something by The Beatles? \ud83c\udfb8\"',
-      'ph-required': 'Required',
-      'ph-comment-text': 'What did you think of the performance?',
-      'ph-search-songbook': 'Search your songbook...',
-      'ph-gig-name': 'Name of the performance',
-      'ph-gig-venue': 'Caf\u00e9, Hall, etc.',
-      'ph-song-title': 'Name of the song',
-      'ph-song-artist': 'e.g. Eagles',
-      'ph-new-gig-name': 'e.g. Friday Night at The Crown',
-      'ph-new-gig-venue': 'Caf\u00e9, Hall, etc.',
-      'status-pending': '\u23f3 Pending',
-      'status-approved': '\u2713 Approved',
-      'status-queued': '\ud83c\udfb5 Queued',
-      'status-playing': '\u25b6 Now Playing',
-      'status-played': '\u2713 Played',
-      'status-rejected': '\u2717 Rejected',
-      'empty-queue-artist': 'Queue is empty. Approve requests to get started.',
-      'empty-queue-voter': 'Queue is empty. Be the first to request a song!',
-      'empty-requests': 'No new requests',
-      'empty-songs': 'No songs available',
-      'empty-songbook': 'No songs in your songbook',
-      'empty-messages': 'No messages yet',
-      'empty-history': 'No gig history yet',
-      'empty-reviews': 'No reviews yet',
-      'lbl-approve': '\u2713 Approve',
-      'lbl-reject': '\u2717 Reject',
-      'lbl-played': '\u2713 Played',
-      'lbl-votes': 'votes',
-      'lbl-requested-by': 'Requested by',
-      'lbl-anonymous': 'Anonymous',
-      'lbl-new': 'new',
-      'lbl-no-active-gig': 'No active gig',
-      'confirm-close-gig': 'Are you sure you want to close this gig?',
-      'lbl-close-gig': 'Close Gig',
-      'lbl-activate-gig': 'Activate',
-      'lbl-gig-artists': 'Artists',
-      'lbl-settings-artists': 'Artists',
-      'lbl-create-one': 'create one',
-      'lbl-logout': 'Logout',
-      'stat-lbl-queue': 'Queue',
-      'stat-lbl-played': 'Played',
-      'stat-lbl-messages': 'Messages',
-      'atab-lbl-queue': 'Queue',
-      'atab-lbl-requests': 'Requests',
-      'atab-lbl-songbook': 'Songbook',
-      'atab-lbl-history': 'History',
-      'atab-lbl-settings': 'Settings',
-      'lbl-live-queue-header': 'Live Queue — drag to reorder',
-      'lbl-new-requests-header': 'New Requests',
-      'lbl-new-gig-banner-title': 'Create New Gig',
-      'lbl-new-gig-banner-sub': 'Start a new performance',
-      'btn-new-gig': '+ New Gig',
-      'lbl-my-songbook': 'My Songbook',
-      'btn-add-song': '+ Song',
-      'lbl-inbox-header': 'Messages from Visitors',
-      'btn-all-read': 'Mark all read',
-      'lbl-history-header': 'Gig History',
-      'lbl-settings-header': 'Gig Settings',
-      'lbl-gig-naam': 'Gig Name',
-      'lbl-locatie': 'Venue',
-      'lbl-allow-requests': 'Allow requests',
-      'lbl-allow-requests-sub': 'Audience can request songs',
-      'lbl-allow-votes': 'Allow voting',
-      'lbl-allow-votes-sub': 'Audience can vote on requests',
-      'lbl-show-karaoke': 'Show lyrics option',
-      'lbl-show-karaoke-sub': 'Lyrics badge visible to audience',
-      'lbl-gig-live': 'Gig is LIVE',
-      'lbl-gig-live-sub': 'Visible to audience via QR code',
-      'lbl-qr-label': 'QR Code & Link',
-      'btn-copy-link': 'Copy Link',
-      'btn-download-qr': 'Download QR',
-      'btn-save-settings': 'Save Settings',
-      'abtab-lbl-live': 'Live',
-      'abtab-lbl-requests': 'Requests',
-      'abtab-lbl-songbook': 'Songbook',
-      'abtab-lbl-inbox': 'Inbox',
-      'abtab-lbl-settings': 'Settings',
-      'lbl-modal-request-title': 'Request Song',
-      'lbl-modal-song-title': 'Add Song',
-      'lbl-song-title-label': 'Title *',
-      'lbl-song-artist-label': 'Original Artist *',
-      'lbl-song-key': 'Key',
-      'lbl-song-ug': 'Ultimate Guitar URL',
-      'lbl-song-karaoke-url': 'Lyrics URL (optional)',
-      'lbl-song-karaoke-toggle': 'Lyrics available',
-      'btn-cancel-song': 'Cancel',
-      'btn-save-song': 'Save',
-      'lbl-gig-detail': 'Gig Detail',
-      'btn-close-history': 'Close',
-      'lbl-new-gig-modal-title': 'Create New Gig',
-      'lbl-new-gig-naam': 'Gig Name *',
-      'lbl-new-gig-locatie': 'Venue',
-      'lbl-new-gig-datum': 'Date',
-      'btn-cancel-new-gig': 'Cancel',
-      'btn-create-gig': 'Create Gig',
-      'lbl-admin-add': 'Add directly to queue',
-      'lbl-choose-song': '— Choose a song —',
-      'btn-add-to-queue': '+ Queue',
-      'toast-request-sent': 'Request sent! 🎵',
-      'toast-voted': 'Vote cast! ❤️',
-      'toast-welcome-back': 'Welcome back! 🎸',
-      'toast-order-updated': 'Order updated ✓',
-      'toast-gig-offline': 'Gig taken offline',
-      'toast-gig-live': 'Gig is now LIVE! 🎸',
-      'opt-general-review': '— General review of the performance —',
-      'toast-gig-switched': 'Gig switched ✓',
-      'toast-gig-closed': 'Gig closed ✓',
-    },
-    fr: {
-      'lbl-role-choice': 'ÊTES-VOUS VISITEUR OU ARTISTE?',
-      'lbl-visitor': 'Visiteur — Demander & Voter',
-      'lbl-artist': 'Artiste / DJ Se connecter',
-      'lbl-login-title': 'Connexion',
-      'lbl-email': 'Adresse e-mail',
-      'lbl-password': 'Mot de passe',
-      'lbl-do-login': 'Se connecter',
-      'lbl-back': 'Retour',
-      'lbl-voter-subtitle': '✦ Demandez votre chanson ✦',
-      'lbl-tonight': 'CE SOIR EN LIVE',
-      'lbl-your-name': 'Votre prénom (optionnel)',
-      'lbl-enter-jukebox': 'Entrer dans le Jukebox →',
-      'lbl-now-playing': 'En ce moment',
-      'itab-queue': 'File',
-      'itab-myrequests': 'Mes demandes',
-      'itab-request': 'Demander',
-      'itab-messages': 'Messages',
-      'itab-comments': 'Avis',
-      'btab-queue': 'File',
-      'btab-search': 'Chercher',
-      'btab-mine': 'Moi',
-      'btab-messages': 'Messages',
-      'btab-reviews': 'Avis',
-      'lbl-queue-title': "File d'attente",
-      'lbl-send-msg': 'Envoyer un message',
-      'lbl-msg-label': "Votre message à l'artiste",
-      'lbl-send-msg-btn': 'Envoyer',
-      'lbl-review-title': 'LAISSER UN AVIS',
-      'lbl-review-name': 'Votre prénom *',
-      'lbl-review-song': 'Pour quelle chanson? (optionnel)',
-      'lbl-rating': 'Note',
-      'lbl-review-text': 'Votre commentaire',
-      'lbl-submit-review-btn': "Publier l'avis",
-      'lbl-reviews-title': 'Avis',
-      'lbl-req-msg': 'Message (optionnel)',
-      'lbl-cancel-btn': 'Annuler',
-      'btn-request-text': 'Demander!',
-      'lbl-tagline': '✦ Musique Live sur Scène ✦',
-      'lbl-now-playing-empty': 'Rien en cours',
-      'lbl-no-messages-voter': "Aucun message pour l'instant",
-      'lbl-no-requests': "Vous n'avez pas encore demand\u00e9 de chanson",
-      'voter-logo-sub': '\u2756 Musique Live \u2756',
-      'artist-logo-sub': '\u2756 Panneau Artiste \u2756',
-      'divider-myrequests': 'Mes demandes',
-      'ph-email': 'vous@exemple.fr',
-      'ph-voter-name': 'ex. Sarah',
-      'ph-search-song': 'Rechercher une chanson ou artiste...',
-      'ph-msg-text': 'ex. \"Pouvez-vous jouer du Beatles? \ud83c\udfb8\"',
-      'ph-required': 'Obligatoire',
-      'ph-comment-text': "Qu'avez-vous pens\u00e9 du spectacle?",
-      'ph-search-songbook': 'Rechercher dans votre r\u00e9pertoire...',
-      'ph-gig-name': 'Nom du spectacle',
-      'ph-gig-venue': 'Caf\u00e9, Salle, etc.',
-      'ph-song-title': 'Nom de la chanson',
-      'ph-song-artist': 'ex. Eagles',
-      'ph-new-gig-name': 'ex. Vendredi soir au Bar du Coin',
-      'ph-new-gig-venue': 'Caf\u00e9, Salle, etc.',
-      'status-pending': '\u23f3 En attente',
-      'status-approved': '\u2713 Approuv\u00e9',
-      'status-queued': '\ud83c\udfb5 En file',
-      'status-playing': '\u25b6 En cours',
-      'status-played': '\u2713 Jou\u00e9',
-      'status-rejected': '\u2717 Rejet\u00e9',
-      'empty-queue-artist': "File vide. Approuvez des demandes pour commencer.",
-      'empty-queue-voter': "File vide. Soyez le premier \u00e0 demander une chanson!",
-      'empty-requests': 'Aucune nouvelle demande',
-      'empty-songs': 'Aucune chanson disponible',
-      'empty-songbook': 'Aucune chanson dans votre r\u00e9pertoire',
-      'empty-messages': "Aucun message pour l'instant",
-      'empty-history': 'Aucun historique de concert',
-      'empty-reviews': 'Aucun avis pour l instant',
-      'lbl-approve': '\u2713 Approuver',
-      'lbl-reject': '\u2717 Rejeter',
-      'lbl-played': '\u2713 Jou\u00e9',
-      'lbl-votes': 'votes',
-      'lbl-requested-by': 'Demand\u00e9 par',
-      'lbl-anonymous': 'Anonyme',
-      'lbl-new': 'nouveau',
-      'lbl-no-active-gig': 'Aucun concert actif',
-      'confirm-close-gig': 'Voulez-vous vraiment terminer ce concert?',
-      'lbl-close-gig': 'Terminer le concert',
-      'lbl-activate-gig': 'Activer',
-      'lbl-gig-artists': 'Artistes',
-      'lbl-settings-artists': 'Artistes',
-      'lbl-create-one': 'créez-en un',
-      'lbl-logout': 'Déconnexion',
-      'stat-lbl-queue': 'File',
-      'stat-lbl-played': 'Joué',
-      'stat-lbl-messages': 'Messages',
-      'atab-lbl-queue': 'File',
-      'atab-lbl-requests': 'Demandes',
-      'atab-lbl-songbook': 'Répertoire',
-      'atab-lbl-history': 'Historique',
-      'atab-lbl-settings': 'Paramètres',
-      'lbl-live-queue-header': 'File en direct — glisser pour trier',
-      'lbl-new-requests-header': 'Nouvelles demandes',
-      'lbl-new-gig-banner-title': 'Créer un concert',
-      'lbl-new-gig-banner-sub': 'Démarrer un nouveau spectacle',
-      'btn-new-gig': '+ Nouveau concert',
-      'lbl-my-songbook': 'Mon répertoire',
-      'btn-add-song': '+ Chanson',
-      'lbl-inbox-header': 'Messages des visiteurs',
-      'btn-all-read': 'Tout marquer lu',
-      'lbl-history-header': 'Historique des concerts',
-      'lbl-settings-header': 'Paramètres du concert',
-      'lbl-gig-naam': 'Nom du concert',
-      'lbl-locatie': 'Lieu',
-      'lbl-allow-requests': 'Autoriser les demandes',
-      'lbl-allow-requests-sub': 'Le public peut demander des chansons',
-      'lbl-allow-votes': 'Autoriser les votes',
-      'lbl-allow-votes-sub': 'Le public peut voter pour les demandes',
-      'lbl-show-karaoke': 'Afficher option lyrics',
-      'lbl-show-karaoke-sub': 'Badge lyrics visible pour le public',
-      'lbl-gig-live': 'Concert est EN DIRECT',
-      'lbl-gig-live-sub': 'Visible pour le public via QR code',
-      'lbl-qr-label': 'QR Code & Lien',
-      'btn-copy-link': 'Copier le lien',
-      'btn-download-qr': 'Télécharger QR',
-      'btn-save-settings': 'Enregistrer',
-      'abtab-lbl-live': 'Direct',
-      'abtab-lbl-requests': 'Demandes',
-      'abtab-lbl-songbook': 'Répertoire',
-      'abtab-lbl-inbox': 'Boîte',
-      'abtab-lbl-settings': 'Réglages',
-      'lbl-modal-request-title': 'Demander une chanson',
-      'lbl-modal-song-title': 'Ajouter une chanson',
-      'lbl-song-title-label': 'Titre *',
-      'lbl-song-artist-label': 'Artiste original *',
-      'lbl-song-key': 'Tonalité',
-      'lbl-song-ug': 'URL Ultimate Guitar',
-      'lbl-song-karaoke-url': 'URL Lyrics (optionnel)',
-      'lbl-song-karaoke-toggle': 'Lyrics disponible',
-      'btn-cancel-song': 'Annuler',
-      'btn-save-song': 'Enregistrer',
-      'lbl-gig-detail': 'Détail du concert',
-      'btn-close-history': 'Fermer',
-      'lbl-new-gig-modal-title': 'Créer un concert',
-      'lbl-new-gig-naam': 'Nom du concert *',
-      'lbl-new-gig-locatie': 'Lieu',
-      'lbl-new-gig-datum': 'Date',
-      'btn-cancel-new-gig': 'Annuler',
-      'btn-create-gig': 'Créer le concert',
-      'lbl-admin-add': 'Ajouter directement à la file',
-      'lbl-choose-song': '— Choisir une chanson —',
-      'btn-add-to-queue': '+ File',
-      'toast-request-sent': 'Demande envoyée! 🎵',
-      'toast-voted': 'Vote enregistré! ❤️',
-      'toast-welcome-back': 'Bon retour! 🎸',
-      'toast-order-updated': 'Ordre mis à jour ✓',
-      'toast-gig-offline': 'Concert mis hors ligne',
-      'toast-gig-live': 'Concert en DIRECT! 🎸',
-      'opt-general-review': '— Avis général sur le spectacle —',
-      'toast-gig-switched': 'Concert changé ✓',
-      'toast-gig-closed': 'Concert terminé ✓',
-    },
-    de: {
-      'lbl-role-choice': 'BIST DU BESUCHER ODER KÜNSTLER?',
-      'lbl-visitor': 'Besucher — Anfragen & Abstimmen',
-      'lbl-artist': 'Künstler / DJ Anmelden',
-      'lbl-login-title': 'Anmelden',
-      'lbl-email': 'E-Mail-Adresse',
-      'lbl-password': 'Passwort',
-      'lbl-do-login': 'Anmelden',
-      'lbl-back': 'Zurück',
-      'lbl-voter-subtitle': '✦ Frag deinen Song an ✦',
-      'lbl-tonight': 'HEUTE ABEND LIVE',
-      'lbl-your-name': 'Dein Name (optional)',
-      'lbl-enter-jukebox': 'Zur Jukebox →',
-      'lbl-now-playing': 'Gerade gespielt',
-      'itab-queue': 'Warteschlange',
-      'itab-myrequests': 'Meine Anfragen',
-      'itab-request': 'Anfragen',
-      'itab-messages': 'Nachrichten',
-      'itab-comments': 'Bewertungen',
-      'btab-queue': 'Warteschlange',
-      'btab-search': 'Suchen',
-      'btab-mine': 'Meine',
-      'btab-messages': 'Nachrichten',
-      'btab-reviews': 'Bewertungen',
-      'lbl-queue-title': 'Warteschlange',
-      'lbl-send-msg': 'Nachricht senden',
-      'lbl-msg-label': 'Deine Nachricht an den Künstler',
-      'lbl-send-msg-btn': 'Senden',
-      'lbl-review-title': 'BEWERTUNG HINTERLASSEN',
-      'lbl-review-name': 'Dein Name *',
-      'lbl-review-song': 'Für welchen Song? (optional)',
-      'lbl-rating': 'Bewertung',
-      'lbl-review-text': 'Dein Kommentar',
-      'lbl-submit-review-btn': 'Bewertung posten',
-      'lbl-reviews-title': 'Bewertungen',
-      'lbl-req-msg': 'Nachricht (optional)',
-      'lbl-cancel-btn': 'Abbrechen',
-      'btn-request-text': 'Anfragen!',
-      'lbl-tagline': '✦ Live Musik auf der Bühne ✦',
-      'lbl-now-playing-empty': 'Noch nichts gespielt',
-      'lbl-no-messages-voter': 'Noch keine Nachrichten',
-      'lbl-no-requests': 'Du hast noch keine Songs angefragt',
-      'voter-logo-sub': '\u2756 Live Musik \u2756',
-      'artist-logo-sub': '\u2756 K\u00fcnstler Panel \u2756',
-      'divider-myrequests': 'Meine Anfragen',
-      'ph-email': 'du@beispiel.de',
-      'ph-voter-name': 'z.B. Sarah',
-      'ph-search-song': 'Song oder K\u00fcnstler suchen...',
-      'ph-msg-text': 'z.B. \"Kannst du etwas von The Beatles spielen? \ud83c\udfb8\"',
-      'ph-required': 'Pflichtfeld',
-      'ph-comment-text': 'Was dachtest du \u00fcber die Auff\u00fchrung?',
-      'ph-search-songbook': 'Songbook durchsuchen...',
-      'ph-gig-name': 'Name des Auftritts',
-      'ph-gig-venue': 'Caf\u00e9, Halle, etc.',
-      'ph-song-title': 'Name des Songs',
-      'ph-song-artist': 'z.B. Eagles',
-      'ph-new-gig-name': 'z.B. Freitagabend im Caf\u00e9',
-      'ph-new-gig-venue': 'Caf\u00e9, Halle, etc.',
-      'status-pending': '\u23f3 In Bearbeitung',
-      'status-approved': '\u2713 Genehmigt',
-      'status-queued': '\ud83c\udfb5 In Warteschlange',
-      'status-playing': '\u25b6 Wird gespielt',
-      'status-played': '\u2713 Gespielt',
-      'status-rejected': '\u2717 Abgelehnt',
-      'empty-queue-artist': 'Warteschlange leer. Anfragen genehmigen zum Starten.',
-      'empty-queue-voter': 'Warteschlange leer. Sei der Erste der einen Song anfragt!',
-      'empty-requests': 'Keine neuen Anfragen',
-      'empty-songs': 'Keine Songs verf\u00fcgbar',
-      'empty-songbook': 'Keine Songs im Songbook',
-      'empty-messages': 'Noch keine Nachrichten',
-      'empty-history': 'Noch keine Gig-Historie',
-      'empty-reviews': 'Noch keine Bewertungen',
-      'lbl-approve': '\u2713 Genehmigen',
-      'lbl-reject': '\u2717 Ablehnen',
-      'lbl-played': '\u2713 Gespielt',
-      'lbl-votes': 'Stimmen',
-      'lbl-requested-by': 'Angefragt von',
-      'lbl-anonymous': 'Anonym',
-      'lbl-new': 'neu',
-      'lbl-no-active-gig': 'Kein aktiver Auftritt',
-      'confirm-close-gig': 'Möchten Sie den Auftritt wirklich beenden?',
-      'lbl-close-gig': 'Auftritt beenden',
-      'lbl-activate-gig': 'Aktivieren',
-      'lbl-gig-artists': 'Künstler',
-      'lbl-settings-artists': 'Künstler',
-      'lbl-create-one': 'erstelle einen',
-      'lbl-logout': 'Abmelden',
-      'stat-lbl-queue': 'Warteschlange',
-      'stat-lbl-played': 'Gespielt',
-      'stat-lbl-messages': 'Nachrichten',
-      'atab-lbl-queue': 'Warteschlange',
-      'atab-lbl-requests': 'Anfragen',
-      'atab-lbl-songbook': 'Songbook',
-      'atab-lbl-history': 'Verlauf',
-      'atab-lbl-settings': 'Einstellungen',
-      'lbl-live-queue-header': 'Live-Warteschlange — zum Sortieren ziehen',
-      'lbl-new-requests-header': 'Neue Anfragen',
-      'lbl-new-gig-banner-title': 'Neuen Auftritt erstellen',
-      'lbl-new-gig-banner-sub': 'Neuen Auftritt starten',
-      'btn-new-gig': '+ Neuer Auftritt',
-      'lbl-my-songbook': 'Mein Songbook',
-      'btn-add-song': '+ Song',
-      'lbl-inbox-header': 'Nachrichten von Besuchern',
-      'btn-all-read': 'Alles als gelesen markieren',
-      'lbl-history-header': 'Auftritts-Verlauf',
-      'lbl-settings-header': 'Auftritts-Einstellungen',
-      'lbl-gig-naam': 'Auftrittsname',
-      'lbl-locatie': 'Veranstaltungsort',
-      'lbl-allow-requests': 'Anfragen erlauben',
-      'lbl-allow-requests-sub': 'Publikum kann Songs anfragen',
-      'lbl-allow-votes': 'Abstimmung erlauben',
-      'lbl-allow-votes-sub': 'Publikum kann für Anfragen abstimmen',
-      'lbl-show-karaoke': 'Lyrics-Option anzeigen',
-      'lbl-show-karaoke-sub': 'Lyrics-Badge für Publikum sichtbar',
-      'lbl-gig-live': 'Auftritt ist LIVE',
-      'lbl-gig-live-sub': 'Für Publikum via QR-Code sichtbar',
-      'lbl-qr-label': 'QR-Code & Link',
-      'btn-copy-link': 'Link kopieren',
-      'btn-download-qr': 'QR herunterladen',
-      'btn-save-settings': 'Einstellungen speichern',
-      'abtab-lbl-live': 'Live',
-      'abtab-lbl-requests': 'Anfragen',
-      'abtab-lbl-songbook': 'Songbook',
-      'abtab-lbl-inbox': 'Posteingang',
-      'abtab-lbl-settings': 'Einstellungen',
-      'lbl-modal-request-title': 'Song anfragen',
-      'lbl-modal-song-title': 'Song hinzufügen',
-      'lbl-song-title-label': 'Titel *',
-      'lbl-song-artist-label': 'Originalkünstler *',
-      'lbl-song-key': 'Tonart',
-      'lbl-song-ug': 'Ultimate Guitar URL',
-      'lbl-song-karaoke-url': 'Lyrics URL (optional)',
-      'lbl-song-karaoke-toggle': 'Lyrics verfügbar',
-      'btn-cancel-song': 'Abbrechen',
-      'btn-save-song': 'Speichern',
-      'lbl-gig-detail': 'Auftrittsdetail',
-      'btn-close-history': 'Schließen',
-      'lbl-new-gig-modal-title': 'Neuen Auftritt erstellen',
-      'lbl-new-gig-naam': 'Auftrittsname *',
-      'lbl-new-gig-locatie': 'Veranstaltungsort',
-      'lbl-new-gig-datum': 'Datum',
-      'btn-cancel-new-gig': 'Abbrechen',
-      'btn-create-gig': 'Auftritt erstellen',
-      'lbl-admin-add': 'Direkt zur Warteschlange hinzufügen',
-      'lbl-choose-song': '— Song auswählen —',
-      'btn-add-to-queue': '+ Warteschlange',
-      'toast-request-sent': 'Anfrage gesendet! 🎵',
-      'toast-voted': 'Stimme abgegeben! ❤️',
-      'toast-welcome-back': 'Willkommen zurück! 🎸',
-      'toast-order-updated': 'Reihenfolge aktualisiert ✓',
-      'toast-gig-offline': 'Gig offline geschaltet',
-      'toast-gig-live': 'Gig ist jetzt LIVE! 🎸',
-      'opt-general-review': '— Allgemeine Bewertung der Vorstellung —',
-      'toast-gig-switched': 'Gig gewechselt ✓',
-      'toast-gig-closed': 'Gig abgeschlossen ✓',
-    },
-    es: {
-      'lbl-role-choice': '¿ERES VISITANTE O ARTISTA?',
-      'lbl-visitor': 'Visitante — Pedir & Votar',
-      'lbl-artist': 'Artista / DJ Iniciar sesión',
-      'lbl-login-title': 'Iniciar sesión',
-      'lbl-email': 'Correo electrónico',
-      'lbl-password': 'Contraseña',
-      'lbl-do-login': 'Iniciar sesión',
-      'lbl-back': 'Volver',
-      'lbl-voter-subtitle': '✦ Pide tu canción ✦',
-      'lbl-tonight': 'ESTA NOCHE EN VIVO',
-      'lbl-your-name': 'Tu nombre (opcional)',
-      'lbl-enter-jukebox': 'Ir a la Jukebox →',
-      'lbl-now-playing': 'Sonando ahora',
-      'itab-queue': 'Cola',
-      'itab-myrequests': 'Mis pedidos',
-      'itab-request': 'Pedir',
-      'itab-messages': 'Mensajes',
-      'itab-comments': 'Reseñas',
-      'btab-queue': 'Cola',
-      'btab-search': 'Buscar',
-      'btab-mine': 'Mío',
-      'btab-messages': 'Mensajes',
-      'btab-reviews': 'Reseñas',
-      'lbl-queue-title': 'Cola de espera',
-      'lbl-send-msg': 'Enviar un mensaje',
-      'lbl-msg-label': 'Tu mensaje al artista',
-      'lbl-send-msg-btn': 'Enviar',
-      'lbl-review-title': 'DEJAR UNA RESEÑA',
-      'lbl-review-name': 'Tu nombre *',
-      'lbl-review-song': '¿Para qué canción? (opcional)',
-      'lbl-rating': 'Puntuación',
-      'lbl-review-text': 'Tu comentario',
-      'lbl-submit-review-btn': 'Publicar reseña',
-      'lbl-reviews-title': 'Reseñas',
-      'lbl-req-msg': 'Mensaje (opcional)',
-      'lbl-cancel-btn': 'Cancelar',
-      'btn-request-text': '¡Pedir!',
-      'lbl-tagline': '✦ Música en Vivo en el Escenario ✦',
-      'lbl-now-playing-empty': 'Nada sonando aún',
-      'lbl-no-messages-voter': 'A\u00fan no hay mensajes',
-      'lbl-no-requests': 'A\u00fan no has pedido ninguna canci\u00f3n',
-      'voter-logo-sub': '\u2756 M\u00fasica en Vivo \u2756',
-      'artist-logo-sub': '\u2756 Panel del Artista \u2756',
-      'divider-myrequests': 'Mis pedidos',
-      'ph-email': 'tu@ejemplo.es',
-      'ph-voter-name': 'ej. Sarah',
-      'ph-search-song': 'Buscar canci\u00f3n o artista...',
-      'ph-msg-text': 'ej. \"\u00bfPuedes tocar algo de The Beatles? \ud83c\udfb8\"',
-      'ph-required': 'Obligatorio',
-      'ph-comment-text': '\u00bfQu\u00e9 te pareci\u00f3 la actuaci\u00f3n?',
-      'ph-search-songbook': 'Buscar en tu repertorio...',
-      'ph-gig-name': 'Nombre de la actuaci\u00f3n',
-      'ph-gig-venue': 'Caf\u00e9, Sala, etc.',
-      'ph-song-title': 'Nombre de la canci\u00f3n',
-      'ph-song-artist': 'ej. Eagles',
-      'ph-new-gig-name': 'ej. Viernes por la noche en el Bar',
-      'ph-new-gig-venue': 'Caf\u00e9, Sala, etc.',
-      'status-pending': '\u23f3 Pendiente',
-      'status-approved': '\u2713 Aprobado',
-      'status-queued': '\ud83c\udfb5 En cola',
-      'status-playing': '\u25b6 Sonando',
-      'status-played': '\u2713 Tocado',
-      'status-rejected': '\u2717 Rechazado',
-      'empty-queue-artist': 'Cola vac\u00eda. Aprueba pedidos para empezar.',
-      'empty-queue-voter': 'Cola vac\u00eda. \u00a1S\u00e9 el primero en pedir una canci\u00f3n!',
-      'empty-requests': 'No hay nuevos pedidos',
-      'empty-songs': 'No hay canciones disponibles',
-      'empty-songbook': 'No hay canciones en tu repertorio',
-      'empty-messages': 'A\u00fan no hay mensajes',
-      'empty-history': 'Sin historial de conciertos',
-      'empty-reviews': 'A\u00fan no hay rese\u00f1as',
-      'lbl-approve': '\u2713 Aprobar',
-      'lbl-reject': '\u2717 Rechazar',
-      'lbl-played': '\u2713 Tocado',
-      'lbl-votes': 'votos',
-      'lbl-requested-by': 'Pedido por',
-      'lbl-anonymous': 'An\u00f3nimo',
-      'lbl-new': 'nuevo',
-      'lbl-no-active-gig': 'Sin concierto activo',
-      'confirm-close-gig': '¿Seguro que quieres cerrar el concierto?',
-      'lbl-close-gig': 'Cerrar concierto',
-      'lbl-activate-gig': 'Activar',
-      'lbl-gig-artists': 'Artistas',
-      'lbl-settings-artists': 'Artistas',
-      'lbl-create-one': 'crea uno',
-      'lbl-logout': 'Salir',
-      'stat-lbl-queue': 'Cola',
-      'stat-lbl-played': 'Tocado',
-      'stat-lbl-messages': 'Mensajes',
-      'atab-lbl-queue': 'Cola',
-      'atab-lbl-requests': 'Pedidos',
-      'atab-lbl-songbook': 'Repertorio',
-      'atab-lbl-history': 'Historial',
-      'atab-lbl-settings': 'Ajustes',
-      'lbl-live-queue-header': 'Cola en vivo — arrastra para ordenar',
-      'lbl-new-requests-header': 'Nuevos pedidos',
-      'lbl-new-gig-banner-title': 'Crear nuevo concierto',
-      'lbl-new-gig-banner-sub': 'Empezar una nueva actuación',
-      'btn-new-gig': '+ Nuevo concierto',
-      'lbl-my-songbook': 'Mi repertorio',
-      'btn-add-song': '+ Canción',
-      'lbl-inbox-header': 'Mensajes de los visitantes',
-      'btn-all-read': 'Marcar todo leído',
-      'lbl-history-header': 'Historial de conciertos',
-      'lbl-settings-header': 'Ajustes del concierto',
-      'lbl-gig-naam': 'Nombre del concierto',
-      'lbl-locatie': 'Lugar',
-      'lbl-allow-requests': 'Permitir pedidos',
-      'lbl-allow-requests-sub': 'El público puede pedir canciones',
-      'lbl-allow-votes': 'Permitir votos',
-      'lbl-allow-votes-sub': 'El público puede votar pedidos',
-      'lbl-show-karaoke': 'Mostrar opción lyrics',
-      'lbl-show-karaoke-sub': 'Insignia de lyrics visible para el público',
-      'lbl-gig-live': 'El concierto está EN VIVO',
-      'lbl-gig-live-sub': 'Visible al público mediante código QR',
-      'lbl-qr-label': 'Código QR & Enlace',
-      'btn-copy-link': 'Copiar enlace',
-      'btn-download-qr': 'Descargar QR',
-      'btn-save-settings': 'Guardar ajustes',
-      'abtab-lbl-live': 'En vivo',
-      'abtab-lbl-requests': 'Pedidos',
-      'abtab-lbl-songbook': 'Repertorio',
-      'abtab-lbl-inbox': 'Bandeja',
-      'abtab-lbl-settings': 'Ajustes',
-      'lbl-modal-request-title': 'Pedir canción',
-      'lbl-modal-song-title': 'Añadir canción',
-      'lbl-song-title-label': 'Título *',
-      'lbl-song-artist-label': 'Artista original *',
-      'lbl-song-key': 'Tonalidad',
-      'lbl-song-ug': 'URL Ultimate Guitar',
-      'lbl-song-karaoke-url': 'URL Lyrics (opcional)',
-      'lbl-song-karaoke-toggle': 'Lyrics disponible',
-      'btn-cancel-song': 'Cancelar',
-      'btn-save-song': 'Guardar',
-      'lbl-gig-detail': 'Detalle del concierto',
-      'btn-close-history': 'Cerrar',
-      'lbl-new-gig-modal-title': 'Crear nuevo concierto',
-      'lbl-new-gig-naam': 'Nombre del concierto *',
-      'lbl-new-gig-locatie': 'Lugar',
-      'lbl-new-gig-datum': 'Fecha',
-      'btn-cancel-new-gig': 'Cancelar',
-      'btn-create-gig': 'Crear concierto',
-      'lbl-admin-add': 'Añadir directamente a la cola',
-      'lbl-choose-song': '— Elige una canción —',
-      'btn-add-to-queue': '+ Cola',
-      'toast-request-sent': '¡Solicitud enviada! 🎵',
-      'toast-voted': '¡Voto emitido! ❤️',
-      'toast-welcome-back': '¡Bienvenido de vuelta! 🎸',
-      'toast-order-updated': 'Orden actualizado ✓',
-      'toast-gig-offline': 'Actuación desconectada',
-      'toast-gig-live': '¡Actuación EN DIRECTO! 🎸',
-      'opt-general-review': '— Reseña general de la actuación —',
-      'toast-gig-switched': 'Actuación cambiada ✓',
-      'toast-gig-closed': 'Actuación cerrada ✓',
-    },
-    mg: {
-      'lbl-role-choice': 'MITSIDIKA SA MPANAO FEON-KIRA?',
-      'lbl-visitor': 'Mpitsidika — Hangataka & Hivoto',
-      'lbl-artist': 'Mpanao feon-kira Hiditra',
-      'lbl-login-title': 'Hiditra',
-      'lbl-email': 'Adiresy mailaka',
-      'lbl-password': 'Teny miafina',
-      'lbl-do-login': 'Hiditra',
-      'lbl-back': 'Hiverina',
-      'lbl-voter-subtitle': '✦ Hangataha ny hira tianao ✦',
-      'lbl-tonight': 'ALINA IZAO VELONA',
-      'lbl-your-name': 'Ny anaranao (tsy voatery)',
-      'lbl-enter-jukebox': "Mankany amin'ny Jukebox →",
-      'lbl-now-playing': 'Miasa ankehitriny',
-      'itab-queue': 'Lisitra',
-      'itab-myrequests': 'Fangatahako',
-      'itab-request': 'Hangataka',
-      'itab-messages': 'Hafatra',
-      'itab-comments': 'Hevitra',
-      'btab-queue': 'Lisitra',
-      'btab-search': 'Hikaroka',
-      'btab-mine': 'Ahy',
-      'btab-messages': 'Hafatra',
-      'btab-reviews': 'Hevitra',
-      'lbl-queue-title': 'Lisitra fandraisan-javatra',
-      'lbl-send-msg': 'Mandefa hafatra',
-      'lbl-msg-label': "Ny hafatrao ho an'ny mpanao feon-kira",
-      'lbl-send-msg-btn': 'Alefa',
-      'lbl-review-title': 'LEAVE HEVITRA',
-      'lbl-review-name': 'Ny anaranao *',
-      'lbl-review-song': 'Momba hira iza? (tsy voatery)',
-      'lbl-rating': 'Tombana',
-      'lbl-review-text': 'Ny hevitrao',
-      'lbl-submit-review-btn': 'Asio hevitra',
-      'lbl-reviews-title': 'Hevitra',
-      'lbl-req-msg': 'Hafatra (tsy voatery)',
-      'lbl-cancel-btn': 'Ajanony',
-      'btn-request-text': 'Hangataka!',
-      'lbl-tagline': '✦ Mozika Velona amin\'ny Sehatra ✦',
-      'lbl-now-playing-empty': 'Tsy misy miasa mbola',
-      'lbl-no-messages-voter': 'Tsy misy hafatra mbola',
-      'lbl-no-requests': 'Tsy mbola nangataka hira ianao',
-      'voter-logo-sub': '\u2756 Mozika Velona \u2756',
-      'artist-logo-sub': "\u2756 Panely ny Mpanao feon-kira \u2756",
-      'divider-myrequests': 'Fangatahako',
-      'ph-email': 'ianao@ohatra.mg',
-      'ph-voter-name': 'ohatra. Sarah',
-      'ph-search-song': 'Hikaroka hira na mpanao feon-kira...',
-      'ph-msg-text': 'ohatra. \"Hira Beatles ve? \ud83c\udfb8\"',
-      'ph-required': 'Ilaina',
-      'ph-comment-text': 'Inona ny hevitrao momba ny fampisehoana?',
-      'ph-search-songbook': 'Hikaroka ao amin ny bokinao...',
-      'ph-gig-name': 'Anaran ny fampisehoana',
-      'ph-gig-venue': 'Kafe, Efitrano, sns.',
-      'ph-song-title': 'Anaran ny hira',
-      'ph-song-artist': 'ohatra. Eagles',
-      'ph-new-gig-name': 'ohatra. Zoma alina ao amin ny Kafe',
-      'ph-new-gig-venue': 'Kafe, Efitrano, sns.',
-      'status-pending': '\u23f3 Andinandiana',
-      'status-approved': '\u2713 Voaraisina',
-      'status-queued': '\ud83c\udfb5 Ao amin ny lisitra',
-      'status-playing': '\u25b6 Miasa ankehitriny',
-      'status-played': '\u2713 Efa nataon-kira',
-      'status-rejected': '\u2717 Nolavin',
-      'empty-queue-artist': 'Lisitra foana. Tereo fangatahana vao mianara.',
-      'empty-queue-voter': 'Lisitra foana. Angataho hira voalohany!',
-      'empty-requests': 'Tsy misy fangatahana vaovao',
-      'empty-songs': 'Tsy misy hira azo alaina',
-      'empty-songbook': 'Tsy misy hira ao amin ny bokinareo',
-      'empty-messages': 'Tsy misy hafatra mbola',
-      'empty-history': 'Tsy misy tantara gig mbola',
-      'empty-reviews': 'Tsy misy hevitra mbola',
-      'lbl-approve': '\u2713 Ekena',
-      'lbl-reject': '\u2717 Atsahatra',
-      'lbl-played': '\u2713 Efa nataon-kira',
-      'lbl-votes': 'vato',
-      'lbl-requested-by': 'Ngatahina avy amin',
-      'lbl-anonymous': 'Tsy fantatra',
-      'lbl-new': 'vaovao',
-      'lbl-no-active-gig': 'Tsy misy gig mavitrika',
-      'confirm-close-gig': 'Te ka hanidy ny gig?',
-      'lbl-close-gig': 'Hanidy ny Gig',
-      'lbl-activate-gig': 'Hanainga',
-      'lbl-gig-artists': 'Mpanao feon-kira',
-      'lbl-settings-artists': 'Mpanao feon-kira',
-      'lbl-create-one': 'mamorona iray',
-      'lbl-logout': 'Hivoaka',
-      'stat-lbl-queue': 'Lisitra',
-      'stat-lbl-played': 'Nataon-kira',
-      'stat-lbl-messages': 'Hafatra',
-      'atab-lbl-queue': 'Lisitra',
-      'atab-lbl-requests': 'Fangatahana',
-      'atab-lbl-songbook': 'Bokin-kira',
-      'atab-lbl-history': 'Tantara',
-      'atab-lbl-settings': 'Fikirana',
-      'lbl-live-queue-header': 'Lisitra velona — hofaka hampifindra',
-      'lbl-new-requests-header': 'Fangatahana vaovao',
-      'lbl-new-gig-banner-title': 'Hamorona gig vaovao',
-      'lbl-new-gig-banner-sub': 'Hanomboka fampisehoana vaovao',
-      'btn-new-gig': '+ Gig vaovao',
-      'lbl-my-songbook': 'Ny bokin-kirako',
-      'btn-add-song': '+ Hira',
-      'lbl-inbox-header': 'Hafatra avy amin ny mpitsidika',
-      'btn-all-read': 'Novakiana avokoa',
-      'lbl-history-header': 'Tantaran ny gig',
-      'lbl-settings-header': 'Fikirana ny gig',
-      'lbl-gig-naam': 'Anaran ny gig',
-      'lbl-locatie': 'Toerana',
-      'lbl-allow-requests': 'Hamela fangatahana',
-      'lbl-allow-requests-sub': 'Ny mpihaino afaka hangataka hira',
-      'lbl-allow-votes': 'Hamela fivotana',
-      'lbl-allow-votes-sub': 'Ny mpihaino afaka hivoto',
-      'lbl-show-karaoke': 'Haneho lyrics',
-      'lbl-show-karaoke-sub': 'Famantarana lyrics hita ho an ny mpihaino',
-      'lbl-gig-live': 'Gig dia VELONA',
-      'lbl-gig-live-sub': 'Hita ho an ny mpihaino amin ny QR code',
-      'lbl-qr-label': 'QR Code & Rohy',
-      'btn-copy-link': 'Haka rohy',
-      'btn-download-qr': 'Hisintona QR',
-      'btn-save-settings': 'Hitahiry fikirana',
-      'abtab-lbl-live': 'Velona',
-      'abtab-lbl-requests': 'Fangatahana',
-      'abtab-lbl-songbook': 'Bokin-kira',
-      'abtab-lbl-inbox': 'Boaty',
-      'abtab-lbl-settings': 'Fikirana',
-      'lbl-modal-request-title': 'Hangataka hira',
-      'lbl-modal-song-title': 'Hanampy hira',
-      'lbl-song-title-label': 'Lohateny *',
-      'lbl-song-artist-label': 'Mpanao feon-kira tany am-boalohany *',
-      'lbl-song-key': 'Lakile',
-      'lbl-song-ug': 'URL Ultimate Guitar',
-      'lbl-song-karaoke-url': 'URL Lyrics (tsy voatery)',
-      'lbl-song-karaoke-toggle': 'Lyrics mety',
-      'btn-cancel-song': 'Ajanony',
-      'btn-save-song': 'Hitahiry',
-      'lbl-gig-detail': 'Antsipiriany ny gig',
-      'btn-close-history': 'Hanidy',
-      'lbl-new-gig-modal-title': 'Hamorona gig vaovao',
-      'lbl-new-gig-naam': 'Anaran ny gig *',
-      'lbl-new-gig-locatie': 'Toerana',
-      'lbl-new-gig-datum': 'Daty',
-      'btn-cancel-new-gig': 'Ajanony',
-      'btn-create-gig': 'Hamorona gig',
-      'lbl-admin-add': 'Hanampy mivantana amin ny lisitra',
-      'lbl-choose-song': '— Hifidy hira —',
-      'btn-add-to-queue': '+ Lisitra',
-      'toast-request-sent': 'Fangatahana nalefa! 🎵',
-      'toast-voted': 'Nifidy! ❤️',
-      'toast-welcome-back': 'Tonga soa indray! 🎸',
-      'toast-order-updated': 'Filaharan\'ny nalaina ✓',
-      'toast-gig-offline': 'Gig nalefaka niala an-tserasera',
-      'toast-gig-live': 'Gig LIVE izao! 🎸',
-      'opt-general-review': '— Hevitra ankapobe momba ny fampisehoana —',
-      'toast-gig-switched': 'Gig novaina ✓',
-      'toast-gig-closed': 'Gig voatanaty ✓',
-    }
-  };
-
-
-  let currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('jukestage_lang')) || 'nl';
-
-  function t(key) {
-    return (translations[currentLang] || translations.nl)[key] || (translations.nl)[key] || key;
-  }
-
-  function setLang(lang) {
-    currentLang = lang;
-    try { localStorage.setItem('jukestage_lang', lang); } catch(e) {}
-    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.lang-btn').forEach(b => {
-      if (b.textContent.includes(lang.toUpperCase())) b.classList.add('active');
-    });
-    const tr = translations[lang] || translations.nl;
-    // Translate text content by ID
-    Object.entries(tr).forEach(([id, text]) => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = text;
-    });
-    // Translate placeholders via data-i18n-ph attribute
-    document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-      const key = el.getAttribute('data-i18n-ph');
-      if (tr[key]) el.placeholder = tr[key];
-    });
-    // Update artist role badge text if visible
-    const badge = document.getElementById('artist-role-badge');
-    if (badge) {
-      const role = (typeof currentUser !== 'undefined' && currentUser?.role) || '';
-      badge.textContent = role === 'admin' ? 'ADMIN' : (lang === 'nl' ? 'ARTIEST' : lang === 'en' ? 'ARTIST' : lang === 'fr' ? 'ARTISTE' : lang === 'de' ? 'KÜNSTLER' : lang === 'es' ? 'ARTISTA' : 'MPANAO FEON-KIRA');
-    }
-    // Update no-active-gig if showing
-    const gigEl = document.getElementById('artist-gig-name');
-    if (gigEl && gigEl.textContent === (translations[lang === 'nl' ? 'en' : 'nl']['lbl-no-active-gig'] || 'Geen actieve gig')) {
-      gigEl.textContent = tr['lbl-no-active-gig'] || 'Geen actieve gig';
-    }
-    // Translate <option> placeholder in admin select
-    const chooseOpt = document.getElementById('lbl-choose-song');
-    if (chooseOpt && tr['lbl-choose-song']) chooseOpt.textContent = tr['lbl-choose-song'];
-  }
-
-  // ════════════════════════════════════════════
   // VIEW ROUTING
   // ════════════════════════════════════════════
   function showView(id) {
@@ -1070,7 +87,7 @@
       document.getElementById('admin-direct-add').style.display = 'block';
     }
 
-    showToast(t('toast-welcome-back'), 'success');
+    showToast('Welkom terug! 🎸', 'success');
     showView('view-artist');
     loadArtistData();
   }
@@ -1080,7 +97,7 @@
   // ════════════════════════════════════════════
   let selectedVoterGig = null;
 
-  async function loadLiveGigs() {
+  async function loadLiveGigs(ignoreToken = false) {
     const pickArea = document.getElementById('voter-gig-pick-area');
     const nameArea = document.getElementById('voter-name-area');
     if (!pickArea) return;
@@ -1094,7 +111,7 @@
       + '<div style="font-family:var(--font-retro);font-size:11px;color:var(--muted);letter-spacing:2px;">LADEN...</div></div>';
 
     const params   = new URLSearchParams(window.location.search);
-    const gigToken = params.get('gig') || params.get('token');
+    const gigToken = !ignoreToken && (params.get('gig') || params.get('token'));
 
     if (gigToken) {
       try {
@@ -1155,12 +172,21 @@
     selectedVoterGig = null;
     document.getElementById('voter-gig-pick-area').style.display = 'block';
     document.getElementById('voter-name-area').style.display = 'none';
+    // Herlaad de giglijst zonder QR-token zodat de gebruiker kan kiezen
+    loadLiveGigs(true);
   }
 
   async function enterAsVoter() {
     const nameEl = document.getElementById('voter-name');
-    const name   = nameEl ? nameEl.value.trim() || null : null;
-    const gig    = selectedVoterGig;
+    const name   = nameEl ? nameEl.value.trim() : '';
+    if (!name) {
+      nameEl.focus();
+      nameEl.style.borderColor = 'var(--neon3)';
+      setTimeout(() => { nameEl.style.borderColor = ''; }, 2000);
+      showToast('Vul je naam in (minimaal 1 karakter)', 'error');
+      return;
+    }
+    const gig = selectedVoterGig;
     if (!gig) { showToast('Selecteer eerst een gig', 'error'); return; }
     if (gig.status === 'finished') { showToast('Deze gig is al afgesloten', 'error'); return; }
     currentGig = gig;
@@ -1210,7 +236,7 @@
     if (!currentGig) return;
 
     const { data: playing } = await db.from('requests')
-      .select('*, songs(title, original_artist, karaoke_url, is_karaoke_available)')
+      .select('*, songs(title, original_artist, karaoke_url)')
       .eq('gig_id', currentGig.id).eq('status', 'playing').limit(1);
 
     const npTitle  = document.getElementById('voter-np-title');
@@ -1219,9 +245,8 @@
       npTitle.textContent  = playing[0].songs?.title || '—';
       npArtist.textContent = playing[0].songs?.original_artist || '—';
 
-      // Toon lyrics-knop als karaoke_url aanwezig is én gig het toestaat
-      const showKaraokeBtn = currentGig.allow_karaoke !== false;
       const karaokeUrl = playing[0].songs?.karaoke_url;
+      const showKaraokeBtn = currentGig.allow_karaoke !== false;
       let lyricsBtn = document.getElementById('voter-np-lyrics-btn');
       if (karaokeUrl && showKaraokeBtn) {
         if (!lyricsBtn) {
@@ -1230,18 +255,17 @@
           lyricsBtn.target = '_blank';
           lyricsBtn.rel = 'noopener noreferrer';
           lyricsBtn.className = 'btn-karaoke-link';
-          lyricsBtn.innerHTML = '🎤 Lyrics openen';
+          lyricsBtn.innerHTML = t('btn-open-lyrics');
           npArtist.parentNode.insertBefore(lyricsBtn, npArtist.nextSibling);
         }
         lyricsBtn.href = karaokeUrl;
         lyricsBtn.style.display = 'inline-flex';
-      } else if (lyricsBtn) {
-        lyricsBtn.style.display = 'none';
+      } else {
+        if (lyricsBtn) lyricsBtn.style.display = 'none';
       }
     } else {
       npTitle.textContent  = '—';
       npArtist.textContent = (translations[currentLang] || translations.nl)['lbl-now-playing-empty'] || 'Nog niets aan het spelen';
-      // Verberg lyrics-knop als er niets speelt
       const lyricsBtn = document.getElementById('voter-np-lyrics-btn');
       if (lyricsBtn) lyricsBtn.style.display = 'none';
     }
@@ -1252,11 +276,23 @@
       .in('status', ['approved','queued','pending'])
       .order('created_at', { ascending: true });
 
-    const votedGigSongIds = new Set();
+    // Track welke requests deze voter al geliked heeft (op request_id)
+    const votedRequestIds = new Set();
     if (voterSession) {
       const { data: myVotes } = await db.from('votes')
-        .select('gig_song_id').eq('voter_session_id', voterSession.id);
-      myVotes?.forEach(v => votedGigSongIds.add(v.gig_song_id));
+        .select('request_id').eq('voter_session_id', voterSession.id);
+      myVotes?.forEach(v => { if (v.request_id) votedRequestIds.add(v.request_id); });
+    }
+
+    // Tel votes live per request
+    const requestIds = (requests || []).map(r => r.id);
+    let voteMap = {};
+    if (requestIds.length > 0) {
+      const { data: voteCounts } = await db.from('votes')
+        .select('request_id').in('request_id', requestIds);
+      (voteCounts || []).forEach(v => {
+        if (v.request_id) voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
+      });
     }
 
     const list = document.getElementById('voter-queue-list');
@@ -1268,8 +304,8 @@
     // Punt 1 FIX: vote werkt nu ook voor custom requests (gigSongId kan null zijn)
     // Punt 16 FIX: toon aanvrager naam
     list.innerHTML = requests.map((req, i) => {
-      const voted = req.gig_song_id ? votedGigSongIds.has(req.gig_song_id) : false;
-      const voteCount = req.gig_songs?.vote_count || 0;
+      const voted = votedRequestIds.has(req.id);
+      const voteCount = voteMap[req.id] || 0;
       const requester = req.voter_sessions?.display_name;
       const allowVote = currentGig.allow_votes !== false;
 
@@ -1331,22 +367,42 @@
       .select('artist_id, artists(name)').eq('gig_id', currentGig.id);
     const artistIds = gigArtists?.map(ga => ga.artist_id) || [];
 
+    // Haal gig_songs op voor gigSongId mapping (voor vote-koppeling)
+    const { data: gigSongsDb } = await db.from('gig_songs')
+      .select('id, song_id, is_active').eq('gig_id', currentGig.id);
+    const gigSongMap = {};
+    gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = gs; });
+
+    // Modus bepaalt wat zichtbaar is — dit is de enige bron van waarheid bij refresh
+    const gigMode = currentGig?.repertoire_mode || 'full';
+
     let allGigSongs = [];
     if (artistIds.length > 0) {
       const { data: artistSongs } = await db.from('artist_songs')
-        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available)')
+        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active)')
         .in('artist_id', artistIds);
       const seen = new Set();
       allGigSongs = (artistSongs || []).filter(as => {
+        if (!as.songs) return false;
         if (seen.has(as.song_id)) return false;
+        const cat = as.songs.song_category || (as.songs.is_active === false ? 'archived' : 'optional');
+
+        // Gearchiveerde nummers nooit tonen
+        if (cat === 'archived') return false;
+
+        // gig_songs.is_active=false = handmatig uitgeschakeld door artiest, altijd verbergen
+        const gs = gigSongMap[as.song_id];
+        if (gs && gs.is_active === false) return false;
+
+        // Core nummers: altijd zichtbaar (tenzij handmatig uitgeschakeld hierboven)
+        if (cat === 'core') { seen.add(as.song_id); return true; }
+
+        // Optionele nummers: alleen zichtbaar in 'full' modus
+        if (gigMode !== 'full') return false;
+
         seen.add(as.song_id); return true;
       });
     }
-
-    const { data: gigSongsDb } = await db.from('gig_songs')
-      .select('id, song_id').eq('gig_id', currentGig.id).eq('is_active', true);
-    const gigSongMap = {};
-    gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = gs.id; });
 
     const list = document.getElementById('voter-song-list');
     if (!allGigSongs || allGigSongs.length === 0) {
@@ -1360,7 +416,7 @@
     filtered.sort((a, b) => (a.songs?.title || '').localeCompare(b.songs?.title || ''));
 
     list.innerHTML = filtered.map(as => {
-      const gigSongId = gigSongMap[as.song_id] || null;
+      const gigSongId = gigSongMap[as.song_id]?.id || null;
       const artistName = as.artists?.name || '';
       const title = (as.songs?.title||'').replace(/'/g, "\\'");
       const origArtist = (as.songs?.original_artist||'').replace(/'/g, "\\'");
@@ -1407,6 +463,14 @@
         loadArtistQueue();
         loadArtistRequests();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'votes' }, () => {
+        loadArtistQueue();
+        loadArtistRequests();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gig_songs' }, () => {
+        loadArtistQueue();
+        loadArtistRequests();
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gig_messages', filter: `gig_id=eq.${currentGig.id}` }, () => {
         loadArtistInbox();
       })
@@ -1419,6 +483,9 @@
   async function toggleVote(btn, requestId, gigSongId, songId) {
     if (!voterSession) { showToast('Sessie verlopen', 'error'); return; }
     if (!currentGig?.allow_votes) { showToast('Stemmen is uitgeschakeld', 'error'); return; }
+    if (btn.disabled) return;
+
+    btn.disabled = true;
     const voted = btn.classList.contains('voted');
     const countEl = btn.querySelector('span');
 
@@ -1441,13 +508,14 @@
           console.error('Vote error:', error);
           showToast('Stemmen mislukt: ' + (error.message || error.code), 'error');
         }
+        btn.disabled = false;
         return;
       }
       btn.classList.add('voted');
       btn.querySelector('svg').setAttribute('fill', 'currentColor');
       btn.querySelector('svg').removeAttribute('stroke');
       countEl.textContent = parseInt(countEl.textContent) + 1;
-      showToast(t('toast-voted'), 'success');
+      showToast('Stem uitgebracht! ❤️', 'success');
     } else {
       let deleteQ = db.from('votes').delete().eq('voter_session_id', voterSession.id);
       if (cleanRequestId) {
@@ -1462,6 +530,10 @@
       countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
       showToast('Stem ingetrokken', '');
     }
+
+    btn.disabled = false;
+    // Refresh artiest queue zodat die meteen de nieuwe telling ziet
+    if (currentUser) { loadArtistQueue(); loadArtistRequests(); }
   }
 
   // ════════════════════════════════════════════
@@ -1520,7 +592,7 @@
       if (error) {
         showToast('Aanvraag mislukt', 'error');
       } else {
-        showToast(t('toast-request-sent'), 'success');
+        showToast('Aanvraag verzonden! 🎵', 'success');
         loadMyRequests(); // update "mijn aanvragen"
       }
     }
@@ -1561,7 +633,7 @@
     const select = document.getElementById('comment-song-select');
     if (select) {
       const seen = new Set();
-      select.innerHTML = `<option value="">${t('opt-general-review')}</option>`;
+      select.innerHTML = '<option value="">— Algemene review over het optreden —</option>';
       playedSongs?.forEach(r => {
         if (r.songs && !seen.has(r.songs.id)) {
           seen.add(r.songs.id);
@@ -1650,7 +722,7 @@
     let userGigs = null;
     if (_ugId) {
       const { data: _ugData, error: ugErr } = await db.from('user_gigs')
-        .select('gig_id, gigs(*)').eq('user_id', _ugId).limit(1);
+        .select('gig_id, gigs(*)').eq('user_id', _ugId);
       if (ugErr) console.warn('user_gigs query failed:', ugErr.message);
       else userGigs = _ugData;
     }
@@ -1664,9 +736,11 @@
           || (b.gigs.gig_date || '').localeCompare(a.gigs.gig_date || '');
       });
 
-    // Only auto-select if no currentGig yet (don't override manual switchActiveGig)
+    // Herstel gecachte gig, anders gebruik de eerste gesorteerde
     if (!currentGig && _sortedGigs.length > 0) {
-      currentGig = _sortedGigs[0].gigs;
+      const cachedId = (() => { try { return localStorage.getItem('jukestage_active_gig'); } catch(e) { return null; } })();
+      const cachedGig = cachedId && _sortedGigs.find(ug => String(ug.gigs.id) === String(cachedId));
+      currentGig = cachedGig ? cachedGig.gigs : _sortedGigs[0].gigs;
     }
 
     if (currentGig) {
@@ -1822,6 +896,7 @@
     closeModal('modal-new-gig');
     showToast('Gig aangemaakt! 🎸', 'success');
     currentGig = gig;
+    try { localStorage.setItem('jukestage_active_gig', gig.id); } catch(e) {}
     loadArtistData();
   }
 
@@ -1837,11 +912,6 @@
     draggedId = e.currentTarget.dataset.id;
     e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
-  }
-
-  function dragEnd(e) {
-    e.currentTarget.classList.remove('dragging');
-    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('drag-over'));
   }
 
   function dragOver(e) {
@@ -1880,7 +950,7 @@
       const numEl = c.querySelector('.queue-num');
       if (numEl && !numEl.classList.contains('playing')) numEl.textContent = i + 1;
     });
-    showToast(t('toast-order-updated'), 'success');
+    showToast('Volgorde aangepast ✓', 'success');
   }
 
   // Touch drag voor Android (punt 6)
@@ -1948,7 +1018,7 @@
   async function loadArtistQueue() {
     if (!currentGig) return;
     const { data: requests } = await db.from('requests')
-      .select('*, songs(title, original_artist, ug_tabs), gig_songs(vote_count), voter_sessions(display_name)')
+      .select('*, songs(title, original_artist, ug_tabs), gig_songs(id, vote_count), voter_sessions(display_name)')
       .eq('gig_id', currentGig.id)
       .in('status', ['approved','queued','playing'])
       .order('created_at', { ascending: true });
@@ -1961,19 +1031,42 @@
       return;
     }
 
+    // Tel votes live vanuit de votes tabel per request, inclusief namen
+    const requestIds = requests.map(r => r.id);
+    const { data: voteCounts } = await db.from('votes')
+      .select('request_id, voter_name')
+      .in('request_id', requestIds);
+
+    const voteMap = {};   // request_id -> count
+    const voterMap = {};  // request_id -> [namen]
+    (voteCounts || []).forEach(v => {
+      if (!v.request_id) return;
+      voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
+      if (!voterMap[v.request_id]) voterMap[v.request_id] = [];
+      if (v.voter_name) voterMap[v.request_id].push(v.voter_name);
+    });
+
+    // Embed voterMap as JSON on window for popup access
+    window._voterMap = voterMap;
+
     list.innerHTML = requests.map((req, i) => {
       const isPlaying = req.status === 'playing';
       const ug = req.songs?.ug_tabs;
       const requester = req.voter_sessions?.display_name;
+      const liveVotes = voteMap[req.id] || req.gig_songs?.vote_count || 0;
       return `<div class="queue-card ${isPlaying ? 'playing' : ''}" data-id="${req.id}" draggable="true"
-          ondragstart="dragStart(event)" ondragend="dragEnd(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragleave="dragLeave(event)">
+          ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragleave="dragLeave(event)">
         ${!isPlaying ? `<div class="drag-handle" id="dh-${req.id}" title="Versleep">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
         </div>` : ''}
         <div class="queue-num ${isPlaying ? 'playing' : ''}">${isPlaying ? '▶' : i + 1}</div>
         <div style="flex:1;min-width:0;">
           <div class="queue-song-title">${req.songs?.title || 'Onbekend'}</div>
-          <div class="queue-song-meta">${req.songs?.original_artist || ''} · ${req.gig_songs?.vote_count || 0} ${t('lbl-votes')}</div>
+          <div class="queue-song-meta">${req.songs?.original_artist || ''} · <span
+            style="cursor:${liveVotes > 0 ? 'pointer' : 'default'};color:${liveVotes > 0 ? 'var(--neon3)' : 'inherit'};text-decoration:${liveVotes > 0 ? 'underline dotted' : 'none'};"
+            onclick="${liveVotes > 0 ? `showVoters(event,'${req.id}')` : ''}"
+            title="${liveVotes > 0 ? 'Klik om te zien wie gestemd heeft' : ''}"
+          >${liveVotes} ${t('lbl-votes')}</span></div>
           ${requester ? `<div class="requester-badge">🎵 ${t('lbl-requested-by')} ${requester}</div>` : ''}
           ${ug ? `<a href="${ug}" target="_blank" class="ug-link" onclick="event.stopPropagation()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
@@ -2028,16 +1121,27 @@
       list.innerHTML = `<div class="empty-state"><p>${t('empty-requests')}</p></div>`; return;
     }
 
+    // Tel votes live vanuit de votes tabel per request
+    const requestIds = requests.map(r => r.id);
+    const { data: voteCounts } = await db.from('votes')
+      .select('request_id')
+      .in('request_id', requestIds);
+    const voteMap = {};
+    (voteCounts || []).forEach(v => {
+      if (v.request_id) voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
+    });
+
     list.innerHTML = requests.map(req => {
       const name = req.voter_sessions?.display_name || t('lbl-anonymous');
       const time = new Date(req.created_at).toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
+      const liveVotes = voteMap[req.id] || req.gig_songs?.vote_count || 0;
       return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:9px;" data-req-id="${req.id}">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
           <div>
             <div class="queue-song-title">${req.songs?.title || 'Onbekend'}</div>
             <div class="queue-song-meta">${req.songs?.original_artist || ''} · ${name} · ${time}</div>
           </div>
-          <span class="badge badge-neon">${req.gig_songs?.vote_count || 0} ❤</span>
+          <span class="badge badge-neon">${liveVotes} ❤</span>
         </div>
         ${req.message ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-style:italic;font-family:var(--font-retro);">"${req.message}"</div>` : ''}
         <div class="action-strip">
@@ -2085,20 +1189,58 @@
       allSongs = []; renderSongbook(allSongs); return;
     }
 
-    const { data: songs } = await db.from('artist_songs')
-      .select('songs(*), artists(name)').in('artist_id', artistIds);
+    // Basis song-info (kolommen die zeker bestaan)
+    const { data: songs, error: songsErr } = await db.from('artist_songs')
+      .select('songs(id,title,original_artist,key_signature,tempo_bpm,genre,ug_tabs,karaoke_url,is_karaoke_available,is_active), artists(name)')
+      .in('artist_id', artistIds);
+
+    if (songsErr) { console.error('loadArtistSongbook:', songsErr.message); return; }
+
+    // Probeer song_category op te halen — kolom bestaat mogelijk nog niet
+    let categoryMap = {};
+    try {
+      const songIds = (songs || []).map(s => s.songs?.id).filter(Boolean);
+      if (songIds.length > 0) {
+        const { data: cats, error: catErr } = await db.from('songs')
+          .select('id, song_category').in('id', songIds);
+        if (!catErr && cats) {
+          cats.forEach(c => { categoryMap[c.id] = c.song_category; });
+        }
+        // Als catErr een 400/PGRST error is, betekent het dat de kolom niet bestaat — stilletjes doorgaan
+      }
+    } catch(e) { /* kolom bestaat nog niet — prima, we gebruiken fallback */ }
+
+    // Haal gig_songs op voor deze gig (inclusief inactieve)
+    const { data: gigSongsDb } = await db.from('gig_songs')
+      .select('id, song_id, is_active').eq('gig_id', currentGig.id);
+    const gigSongMap = {};
+    gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = { id: gs.id, active: gs.is_active }; });
 
     const seen = new Set();
     allSongs = (songs || []).filter(s => {
       if (!s.songs || seen.has(s.songs.id)) return false;
       seen.add(s.songs.id); return true;
-    }).map(s => ({ ...s.songs, _artistName: s.artists?.name }));
+    }).map(s => {
+      const gs = gigSongMap[s.songs.id];
+      // Fallback: als song_category kolom niet bestaat → afleiden van is_active + gig_songs
+      const cat = categoryMap[s.songs.id]
+        || (s.songs.is_active === false ? 'archived'
+          : (gs && gs.active === false ? 'optional' : 'optional'));
+      return {
+        ...s.songs,
+        song_category: cat,
+        _artistName: s.artists?.name,
+        _gigSongId: gs?.id || null,
+        _gigActive: gs ? gs.active : true
+      };
+    });
 
     renderSongbook(allSongs);
   }
 
   function filterSongbook(query) {
     const q = query.toLowerCase();
+    // Filter op naam/artiest maar behoud alle niveaus (actief, gig-uit, gearchiveerd)
     const filtered = q ? allSongs.filter(s =>
       s.title?.toLowerCase().includes(q) || s.original_artist?.toLowerCase().includes(q)) : allSongs;
     renderSongbook(filtered);
@@ -2109,29 +1251,63 @@
     if (!songs || songs.length === 0) {
       list.innerHTML = `<div class="empty-state"><p>${t('empty-songbook')}</p></div>`; return;
     }
-    list.innerHTML = songs.map(song => `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:9px;">
-        <div style="display:flex;justify-content:space-between;align-items:start;">
-          <div style="flex:1;">
-            <div class="queue-song-title">${song.title}</div>
-            <div class="queue-song-meta">${song.original_artist || ''}${song.key_signature ? ' · ' + song.key_signature : ''}${song.duration ? ' · ' + song.duration : ''}</div>
-            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+
+    const core     = songs.filter(s => (s.song_category || 'optional') === 'core');
+    const optional = songs.filter(s => (s.song_category || 'optional') === 'optional');
+    const archived = songs.filter(s => (s.song_category || 'optional') === 'archived');
+
+    const renderCard = (song) => {
+      const cat       = song.song_category || 'optional';
+      const safeTitle = (song.title||'').replace(/'/g,"\'").replace(/"/g,'&quot;');
+      const isArchived = cat === 'archived';
+      const borderColor = cat === 'core' ? 'rgba(255,170,0,0.35)' : cat === 'archived' ? 'var(--border)' : 'var(--border)';
+      const opacity = isArchived ? '0.5' : '1';
+
+      return `<div style="background:var(--surface);border:1px solid ${borderColor};border-radius:12px;padding:14px;margin-bottom:9px;opacity:${opacity};">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:10px;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <div class="queue-song-title" style="font-size:18px;">${song.title}</div>
+            </div>
+            <div class="queue-song-meta">${song.original_artist || ''}${song.key_signature ? ' · ' + song.key_signature : ''}</div>
+            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
               ${song.genre ? `<span class="badge badge-chrome">${song.genre}</span>` : ''}
               ${song.is_karaoke_available ? '<span class="badge badge-karaoke">🎤 Lyrics</span>' : ''}
             </div>
           </div>
-          <button class="btn btn-ghost btn-icon" onclick="editSong(${song.id})" style="margin-left:8px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="btn btn-ghost btn-icon" onclick="deleteSong(${song.id})" style="margin-left:4px;color:var(--neon3);" title="Verwijderen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-          </button>
+          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;align-items:flex-end;">
+            <!-- Categorie-knoppen -->
+            <div style="display:flex;gap:4px;" title="Categorie instellen">
+              <button class="cat-btn ${cat==='core'?'active-core':''}"    onclick="setSongCategory(${song.id},'core')"     title="⭐ Vast repertoire — altijd beschikbaar">⭐</button>
+              <button class="cat-btn ${cat==='optional'?'active-optional':''}" onclick="setSongCategory(${song.id},'optional')"  title="🎵 Optioneel — per gig in te schakelen">🎵</button>
+              <button class="cat-btn ${cat==='archived'?'active-archived':''}" onclick="setSongCategory(${song.id},'archived')"  title="🗃 Gearchiveerd — niet aanvraagbaar">🗃</button>
+            </div>
+            ${cat !== 'archived' ? `<button class="btn btn-ghost btn-icon" onclick="editSong(${song.id})" title="Bewerken" style="margin-top:2px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="15" height="15"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>` : ''}
+          </div>
         </div>
         ${song.ug_tabs ? `<a href="${song.ug_tabs}" target="_blank" class="ug-link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
           Ultimate Guitar tabs
         </a>` : ''}
-      </div>`).join('');
+      </div>`;
+    };
+
+    let html = '';
+    if (core.length > 0) {
+      html += `<div style="font-family:var(--font-retro);font-size:9px;letter-spacing:3px;color:var(--neon2);text-transform:uppercase;margin:10px 0 8px;">${t('cat-core').toUpperCase()} (${core.length})</div>`;
+      html += core.map(renderCard).join('');
+    }
+    if (optional.length > 0) {
+      html += `<div style="font-family:var(--font-retro);font-size:9px;letter-spacing:3px;color:var(--neon);text-transform:uppercase;margin:14px 0 8px;">${t('cat-optional').toUpperCase()} (${optional.length})</div>`;
+      html += optional.map(renderCard).join('');
+    }
+    if (archived.length > 0) {
+      html += `<div style="font-family:var(--font-retro);font-size:9px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin:14px 0 8px;">${t('cat-archived').toUpperCase()} (${archived.length})</div>`;
+      html += archived.map(renderCard).join('');
+    }
+    list.innerHTML = html;
   }
 
   // ════════════════════════════════════════════
@@ -2194,57 +1370,212 @@
 
   async function openGigHistory(gigId, gigName) {
     document.getElementById('modal-history-title').textContent = gigName;
-    const content = document.getElementById('modal-history-content');
-    content.innerHTML = `<div style="color:var(--muted);font-family:var(--font-retro);text-align:center;padding:20px;">Laden...</div>`;
+    const contentEl = document.getElementById('modal-history-content');
+    contentEl.innerHTML = `<div style="color:var(--muted);font-family:var(--font-retro);text-align:center;padding:20px;">Laden...</div>`;
     document.getElementById('modal-history').classList.add('open');
 
-    const [{ data: played }, { data: messages }, { data: comments }] = await Promise.all([
-      db.from('requests').select('*, songs(title, original_artist), voter_sessions(display_name)')
+    const [{ data: played }, { data: messages }, { data: comments }, { data: allVotes }] = await Promise.all([
+      db.from('requests').select('id, message, status, songs(title, original_artist), voter_sessions(display_name)')
         .eq('gig_id', gigId).eq('status', 'played').order('updated_at', { ascending: true }),
       db.from('gig_messages').select('*').eq('gig_id', gigId).order('created_at', { ascending: true }),
-      db.from('comments').select('*').eq('gig_id', gigId).order('created_at', { ascending: false })
+      db.from('comments').select('*').eq('gig_id', gigId).order('created_at', { ascending: false }),
+      // Haal alle votes op voor deze gig via requests
+      db.from('votes').select('request_id, voter_name, gig_song_id')
+        .in('request_id',
+          // subquery workaround: haal eerst request-ids op
+          (await db.from('requests').select('id').eq('gig_id', gigId)).data?.map(r => r.id) || []
+        )
     ]);
 
-    let html = '';
-    html += `<div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">🎵 Gespeelde Songs (${played?.length || 0})</div>`;
+    // Bouw een map: request_id -> { song title, voters[] }
+    // Combineer met alle requests (ook niet gespeeld) voor volledig stemoverzicht
+    const { data: allRequests } = await db.from('requests')
+      .select('id, songs(title, original_artist)')
+      .eq('gig_id', gigId)
+      .not('status', 'eq', 'rejected');
+
+    const votesByRequest = {};
+    (allVotes || []).forEach(v => {
+      if (!v.request_id) return;
+      if (!votesByRequest[v.request_id]) votesByRequest[v.request_id] = [];
+      if (v.voter_name) votesByRequest[v.request_id].push(v.voter_name);
+    });
+
+    // Sorteer op stemcount
+    const votedRequests = (allRequests || [])
+      .map(r => ({ ...r, voters: votesByRequest[r.id] || [] }))
+      .filter(r => r.voters.length > 0)
+      .sort((a, b) => b.voters.length - a.voters.length);
+
+    // ── Tabs bovenaan de modal ──
+    const tabHtml = `
+      <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;">
+        <button onclick="historyTab('songs',this)"   id="htab-songs"   style="flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--neon);color:#000;text-transform:uppercase;">🎵 Songs</button>
+        <button onclick="historyTab('votes',this)"   id="htab-votes"   style="flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--surface2);color:var(--muted);text-transform:uppercase;">❤ Likes</button>
+        <button onclick="historyTab('messages',this)" id="htab-messages" style="flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--surface2);color:var(--muted);text-transform:uppercase;">💬 Berichten</button>
+        <button onclick="historyTab('reviews',this)" id="htab-reviews" style="flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--surface2);color:var(--muted);text-transform:uppercase;">⭐ Reviews</button>
+      </div>`;
+
+    // ── Songs sectie ──
+    let songHtml = '';
     if (played?.length) {
-      html += played.map((r, i) => `
+      songHtml += played.map((r, i) => `
         <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface2);border-radius:9px;margin-bottom:6px;">
           <div style="font-family:var(--font-display);font-size:18px;color:var(--border2);min-width:28px;">${i+1}</div>
           <div>
             <div style="font-family:var(--font-display);font-size:16px;">${r.songs?.title || '—'}</div>
-            <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${r.songs?.original_artist || ''}${r.voter_sessions?.display_name ? ' · aangevraagd door ' + r.voter_sessions.display_name : ''}${r.message ? ' · "' + r.message + '"' : ''}</div>
+            <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${r.songs?.original_artist || ''}${r.voter_sessions?.display_name ? ' · door ' + r.voter_sessions.display_name : ''}${r.message ? ' · "' + r.message + '"' : ''}</div>
           </div>
         </div>`).join('');
-    } else { html += `<div style="color:var(--muted);font-size:13px;margin-bottom:12px;font-family:var(--font-retro);">Geen songs gespeeld</div>`; }
+    } else {
+      songHtml = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-retro);padding:16px 0;">Geen songs gespeeld</div>`;
+    }
 
-    html += `<div class="divider"></div>`;
-    html += `<div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">💬 Berichten (${messages?.length || 0})</div>`;
+    // ── Votes/likes sectie — het echte overzicht ──
+    let votesHtml = '';
+    if (votedRequests.length > 0) {
+      // Totaaltelling unieke voters
+      const allVoterNames = [...new Set((allVotes || []).filter(v => v.voter_name).map(v => v.voter_name))];
+      votesHtml += `
+        <div style="background:rgba(255,51,102,0.07);border:1px solid rgba(255,51,102,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:16px;">
+          <div style="text-align:center;">
+            <div style="font-family:var(--font-display);font-size:28px;color:var(--neon3);">${(allVotes||[]).length}</div>
+            <div style="font-size:9px;color:var(--muted);font-family:var(--font-retro);letter-spacing:1px;">TOTAAL LIKES</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-family:var(--font-display);font-size:28px;color:var(--neon3);">${allVoterNames.length}</div>
+            <div style="font-size:9px;color:var(--muted);font-family:var(--font-retro);letter-spacing:1px;">UNIEKE VOTERS</div>
+          </div>
+        </div>`;
+
+      votesHtml += votedRequests.map(r => {
+        const hearts = '❤'.repeat(Math.min(r.voters.length, 8)) + (r.voters.length > 8 ? ` +${r.voters.length - 8}` : '');
+        return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div>
+              <div style="font-family:var(--font-display);font-size:16px;">${r.songs?.title || '—'}</div>
+              <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${r.songs?.original_artist || ''}</div>
+            </div>
+            <div style="font-family:var(--font-display);font-size:22px;color:var(--neon3);flex-shrink:0;">${r.voters.length}</div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;">
+            ${r.voters.map(n => `<span style="background:rgba(255,51,102,0.12);border:1px solid rgba(255,51,102,0.25);border-radius:100px;padding:2px 9px;font-size:11px;color:var(--text);font-family:var(--font-retro);">❤ ${n}</span>`).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      votesHtml = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-retro);padding:16px 0;">Geen likes uitgebracht</div>`;
+    }
+
+    // ── Berichten sectie ──
+    let msgHtml = '';
     if (messages?.length) {
-      html += messages.map(m => {
+      msgHtml = messages.map(m => {
         const time = new Date(m.created_at).toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
         return `<div class="msg-item" style="margin-bottom:6px;">
           <div class="msg-avatar">${(m.sender_name || 'A')[0].toUpperCase()}</div>
-          <div><div class="msg-name">${m.sender_name || 'Anoniem'} · ${time}</div><div class="msg-text">${m.message}</div></div>
+          <div><div class="msg-name">${m.sender_name || '—'} · ${time}</div><div class="msg-text">${m.message}</div></div>
         </div>`;
       }).join('');
-    } else { html += `<div style="color:var(--muted);font-size:13px;margin-bottom:12px;font-family:var(--font-retro);">Geen berichten</div>`; }
-
-    if (comments?.length) {
-      html += `<div class="divider"></div>`;
-      html += `<div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;">⭐ Reviews (${comments.length})</div>`;
-      html += comments.map(c => {
-        const stars = c.rating ? '★'.repeat(c.rating) + '☆'.repeat(5-c.rating) : '';
-        return `<div class="comment-card">${stars ? `<div style="color:var(--neon2);margin-bottom:4px;">${stars}</div>` : ''}<div class="comment-author" style="margin-bottom:4px;">${c.author_name}</div><div class="comment-text">${c.content}</div></div>`;
-      }).join('');
+    } else {
+      msgHtml = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-retro);padding:16px 0;">Geen berichten</div>`;
     }
 
-    content.innerHTML = html;
+    // ── Reviews sectie ──
+    let reviewHtml = '';
+    if (comments?.length) {
+      const avgRating = comments.filter(c => c.rating).reduce((s, c) => s + c.rating, 0) / (comments.filter(c => c.rating).length || 1);
+      reviewHtml += `
+        <div style="background:rgba(255,170,0,0.07);border:1px solid rgba(255,170,0,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;gap:16px;align-items:center;">
+          <div style="font-family:var(--font-display);font-size:32px;color:var(--neon2);">${avgRating.toFixed(1)}</div>
+          <div>
+            <div style="color:var(--neon2);font-size:16px;letter-spacing:2px;">${'★'.repeat(Math.round(avgRating))}${'☆'.repeat(5-Math.round(avgRating))}</div>
+            <div style="font-size:9px;color:var(--muted);font-family:var(--font-retro);letter-spacing:1px;">${comments.length} REVIEW${comments.length !== 1 ? 'S' : ''}</div>
+          </div>
+        </div>`;
+      reviewHtml += comments.map(c => {
+        const stars = c.rating ? '★'.repeat(c.rating) + '☆'.repeat(5-c.rating) : '';
+        return `<div class="comment-card">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div class="comment-author">${c.author_name}</div>
+            ${stars ? `<div style="color:var(--neon2);">${stars}</div>` : ''}
+          </div>
+          ${c.song_title ? `<div style="font-size:11px;color:var(--neon2);margin:3px 0;font-family:var(--font-mono);">🎵 ${c.song_title}</div>` : ''}
+          <div class="comment-text">${c.content}</div>
+        </div>`;
+      }).join('');
+    } else {
+      reviewHtml = `<div style="color:var(--muted);font-size:13px;font-family:var(--font-retro);padding:16px 0;">Geen reviews</div>`;
+    }
+
+    contentEl.innerHTML = tabHtml
+      + `<div id="hpanel-songs">${songHtml}</div>`
+      + `<div id="hpanel-votes" style="display:none;">${votesHtml}</div>`
+      + `<div id="hpanel-messages" style="display:none;">${msgHtml}</div>`
+      + `<div id="hpanel-reviews" style="display:none;">${reviewHtml}</div>`;
+  }
+
+  function historyTab(tab, btn) {
+    ['songs','votes','messages','reviews'].forEach(t => {
+      const panel = document.getElementById('hpanel-' + t);
+      const tbtn  = document.getElementById('htab-' + t);
+      if (panel) panel.style.display = t === tab ? 'block' : 'none';
+      if (tbtn)  tbtn.style.cssText  = t === tab
+        ? 'flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--neon);color:#000;text-transform:uppercase;'
+        : 'flex:1;padding:7px 4px;font-family:var(--font-retro);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:8px;border:none;background:var(--surface2);color:var(--muted);text-transform:uppercase;';
+    });
   }
 
   // ════════════════════════════════════════════
   // GIG SETTINGS + QR (punt 12)
   // ════════════════════════════════════════════
+
+  // ════════════════════════════════════════════
+  async function saveGigSettings() {
+    if (!currentGig) return;
+    const name    = document.getElementById('settings-gig-name').value.trim();
+    const venue   = document.getElementById('settings-gig-venue').value.trim();
+    const allowReq  = document.getElementById('toggle-requests').classList.contains('on');
+    const allowVote = document.getElementById('toggle-votes').classList.contains('on');
+
+    await db.from('gigs').update({
+      name: name || currentGig.name,
+      venue: venue || currentGig.venue,
+      allow_requests: allowReq,
+      allow_votes: allowVote
+    }).eq('id', currentGig.id);
+    // Update local state
+    currentGig.name = name || currentGig.name;
+    currentGig.venue = venue || currentGig.venue;
+    currentGig.allow_requests = allowReq;
+    currentGig.allow_votes = allowVote;
+
+    // Sync gig_artists: dedupliceer eerst, dan verwijder+insert
+    const uniqueArtists = settingsGigArtists.filter(
+      (a, i, arr) => arr.findIndex(b => b.id === a.id) === i
+    );
+    settingsGigArtists = uniqueArtists; // update state direct
+    await db.from('gig_artists').delete().eq('gig_id', currentGig.id);
+    for (const a of uniqueArtists) {
+      await db.from('gig_artists').insert({ gig_id: currentGig.id, artist_id: a.id });
+    }
+
+    showToast('Instellingen opgeslagen ✓', 'success');
+    // Herlaad alleen wat echt hoeft — NIET loadArtistData() want dat reset settingsGigArtists
+    updateActiveGigPill(currentGig);
+    document.getElementById('artist-gig-name').textContent = currentGig.name || currentGig.venue || 'Gig';
+    loadArtistSongbook();
+    loadSettingsSongList();
+    loadArtistHistory();
+  }
+
+  async function toggleGigLive(btn) {
+    btn.classList.toggle('on');
+    const isLive = btn.classList.contains('on');
+    await db.from('gigs').update({ status: isLive ? 'live' : 'upcoming' }).eq('id', currentGig.id);
+    document.getElementById('artist-gig-status').style.display = isLive ? 'inline-flex' : 'none';
+    showToast(isLive ? 'Gig is nu LIVE! 🎸' : 'Gig offline gezet', isLive ? 'success' : '');
+  }
 
   // ════════════════════════════════════════════
   // GIG AFSLUITEN
@@ -2262,7 +1593,7 @@
     currentGig.status = 'finished';
     currentGig.is_active = false;
     document.getElementById('artist-gig-status').style.display = 'none';
-    showToast(t('toast-gig-closed'), 'success');
+    showToast('Gig afgesloten ✓', 'success');
     loadGigSettings();
     loadArtistQueue();
     loadArtistRequests();
@@ -2342,6 +1673,7 @@
     const { data: gigData } = await db.from('gigs').select('*').eq('id', gigId).single();
     if (!gigData) return;
     currentGig = gigData;
+    try { localStorage.setItem('jukestage_active_gig', gigId); } catch(e) {}
     updateActiveGigPill(currentGig);
     document.getElementById('artist-gig-name').textContent = currentGig.name || currentGig.venue || t('lbl-no-active-gig');
     document.getElementById('artist-gig-status').style.display = currentGig.status === 'live' ? 'inline-flex' : 'none';
@@ -2352,14 +1684,7 @@
     loadGigSettings();
     loadArtistHistory();
     subscribeArtistRealtime();
-    // Herlaad stat-played voor de nieuwe gig
-    db.from('requests').select('*', { count: 'exact', head: true })
-      .eq('gig_id', currentGig.id).eq('status', 'played')
-      .then(({ count }) => {
-        const el = document.getElementById('stat-played');
-        if (el) el.textContent = count || 0;
-      });
-    showToast(t('toast-gig-switched'), 'success');
+    showToast('Gig gewisseld: ' + (currentGig.name || 'Gig'), 'success');
   }
 
   // ════════════════════════════════════════════
@@ -2466,7 +1791,7 @@
     document.getElementById('settings-artist-results').style.display = 'none';
 
     // Punt 12: echte URL + werkende QR code
-    const gigUrl = `https://jukestage.vercel.app/?gig=${currentGig.qr_token || currentGig.id}`;
+    const gigUrl = `https://jukestage.live/?gig=${currentGig.qr_token || currentGig.id}`;
     document.getElementById('qr-link').textContent = gigUrl;
     generateQRCode(gigUrl);
 
@@ -2490,6 +1815,11 @@
     const reopenBtn = document.getElementById('btn-reopen-gig');
     if (closeBtn) closeBtn.style.display = currentGig.status === 'finished' ? 'none' : '';
     if (reopenBtn) reopenBtn.style.display = currentGig.status === 'finished' ? '' : 'none';
+
+    // Laad de per-gig songlijst in de instellingen
+    loadSettingsSongList();
+    // Zet modus-knoppen op juiste staat
+    updateRepertoireModeUI(currentGig.repertoire_mode || 'full');
   }
 
   async function reopenGig() {
@@ -2502,82 +1832,6 @@
     loadArtistHistory();
   }
 
-
-  function generateQRCode(url) {
-    const el = document.getElementById('qr-canvas');
-    if (!el || !url || url === '—') return;
-    el.innerHTML = '';
-    if (typeof QRCode === 'undefined') {
-      el.innerHTML = '<div style="color:var(--muted);font-size:11px;text-align:center;padding:20px;">QR library laden...</div>';
-      const script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-      script.onload = () => generateQRCode(url);
-      document.head.appendChild(script);
-      return;
-    }
-    new QRCode(el, {
-      text: url,
-      width: 200,
-      height: 200,
-      colorDark: '#0d0705',
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-    // Store canvas ref for download
-    setTimeout(() => { el._canvas = el.querySelector('canvas'); }, 100);
-  }
-
-
-  function downloadQR() {
-    const url = document.getElementById('qr-link').textContent;
-    if (!url || url === '—') { showToast('Geen QR-code beschikbaar', 'error'); return; }
-    const el = document.getElementById('qr-canvas');
-    const canvas = el?._canvas || el?.querySelector('canvas');
-    if (canvas) {
-      const link = document.createElement('a');
-      link.download = 'jukestage-qr.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('QR code gedownload! 📲', 'success');
-    } else {
-      generateQRCode(url);
-      setTimeout(() => downloadQR(), 500);
-    }
-  }
-
-  async function saveGigSettings() {
-    if (!currentGig) return;
-    const name    = document.getElementById('settings-gig-name').value.trim();
-    const venue   = document.getElementById('settings-gig-venue').value.trim();
-    const allowReq  = document.getElementById('toggle-requests').classList.contains('on');
-    const allowVote = document.getElementById('toggle-votes').classList.contains('on');
-
-    await db.from('gigs').update({
-      name: name || currentGig.name,
-      venue: venue || currentGig.venue,
-      allow_requests: allowReq,
-      allow_votes: allowVote
-    }).eq('id', currentGig.id);
-
-    // Sync gig_artists: remove all, re-insert selected
-    await db.from('gig_artists').delete().eq('gig_id', currentGig.id);
-    for (const a of settingsGigArtists) {
-      await db.from('gig_artists').insert({ gig_id: currentGig.id, artist_id: a.id });
-    }
-
-    showToast('Instellingen opgeslagen ✓', 'success');
-    loadArtistData();
-  }
-
-  async function toggleGigLive(btn) {
-    btn.classList.toggle('on');
-    const isLive = btn.classList.contains('on');
-    await db.from('gigs').update({ status: isLive ? 'live' : 'upcoming' }).eq('id', currentGig.id);
-    document.getElementById('artist-gig-status').style.display = isLive ? 'inline-flex' : 'none';
-    showToast(isLive ? t('toast-gig-live') : t('toast-gig-offline'), isLive ? 'success' : '');
-  }
-
-  // ════════════════════════════════════════════
   // QUEUE ACTIES
   // ════════════════════════════════════════════
   async function markPlayed(requestId) {
@@ -2635,7 +1889,21 @@
     ['song-title','song-artist','song-key','song-ug','song-karaoke-url'].forEach(id => { document.getElementById(id).value = ''; });
     document.getElementById('song-bpm').value = '';
     document.getElementById('song-karaoke-toggle').classList.remove('on');
+    selectSongCatModal('optional');
     document.getElementById('modal-add-song').classList.add('open');
+  }
+
+  let _modalSongCat = 'optional';
+  const _catLabels = () => ({ core: t('cat-core-desc'), optional: t('cat-optional-desc'), archived: t('cat-archived-desc') });
+
+  function selectSongCatModal(cat) {
+    _modalSongCat = cat;
+    ['core','optional','archived'].forEach(c => {
+      const btn = document.getElementById('cat-btn-' + c);
+      if (btn) btn.className = 'cat-btn' + (c === cat ? ' active-' + c : '');
+    });
+    const lbl = document.getElementById('cat-modal-label');
+    if (lbl) lbl.textContent = _catLabels()[cat] || cat;
   }
 
   async function editSong(songId) {
@@ -2650,15 +1918,8 @@
     document.getElementById('song-ug').value     = song.ug_tabs || '';
     document.getElementById('song-karaoke-url').value = song.karaoke_url || '';
     document.getElementById('song-karaoke-toggle').classList.toggle('on', !!song.is_karaoke_available);
+    selectSongCatModal(song.song_category || 'optional');
     document.getElementById('modal-add-song').classList.add('open');
-  }
-  async function deleteSong(songId) {
-    if (!confirm('Wil je dit nummer verwijderen uit je songbook?')) return;
-    const { error } = await db.from('songs').delete().eq('id', songId);
-    if (error) { showToast('Fout bij verwijderen', 'error'); return; }
-    allSongs = allSongs.filter(s => s.id !== songId);
-    renderSongbook(allSongs);
-    showToast('Nummer verwijderd ✓', 'success');
   }
 
   async function saveSong() {
@@ -2669,20 +1930,27 @@
     const ugTabs   = document.getElementById('song-ug').value.trim() || null;
     const karaUrl  = document.getElementById('song-karaoke-url').value.trim() || null;
     const isKaraoke = document.getElementById('song-karaoke-toggle').classList.contains('on');
+    const songCat = _modalSongCat || 'optional';
 
     if (!title) { showToast('Vul een titel in', 'error'); return; }
 
     if (editingSongId) {
       await db.from('songs').update({
         title, original_artist: artist, key_signature: key,
-        tempo_bpm: bpm, ug_tabs: ugTabs, karaoke_url: karaUrl, is_karaoke_available: isKaraoke
+        tempo_bpm: bpm, ug_tabs: ugTabs, karaoke_url: karaUrl,
+        is_karaoke_available: isKaraoke,
+        song_category: songCat,
+        is_active: songCat !== 'archived'
       }).eq('id', editingSongId);
       showToast('Nummer bijgewerkt ✓', 'success');
     } else {
       const { data: song, error } = await db.from('songs').insert({
         title, original_artist: artist, key_signature: key,
         tempo_bpm: bpm, ug_tabs: ugTabs, karaoke_url: karaUrl,
-        is_karaoke_available: isKaraoke, is_active: true, created_at: new Date().toISOString()
+        is_karaoke_available: isKaraoke,
+        song_category: songCat,
+        is_active: songCat !== 'archived',
+        created_at: new Date().toISOString()
       }).select().single();
       if (error) { showToast('Kon nummer niet opslaan', 'error'); return; }
       if (currentArtist) {
@@ -2706,7 +1974,221 @@
   }
 
   // ════════════════════════════════════════════
-  // PUNT 11 FIX: TAB SYNC — inner tabs en bottom tabs synchroon
+  // VOTERS POPUP
+  // ════════════════════════════════════════════
+  let _popupEl = null;
+
+  async function showVoters(event, requestId) {
+    event.stopPropagation();
+    removeVotersPopup();
+
+    // Gebruik gecachte map als beschikbaar, anders haal live op uit DB
+    let names = (window._voterMap || {})[requestId] || null;
+    if (names === null) {
+      const { data: votes } = await db.from('votes')
+        .select('voter_name').eq('request_id', requestId);
+      names = (votes || []).map(v => v.voter_name).filter(Boolean);
+    }
+
+    if (names.length === 0) {
+      showToast('Geen namen bekend voor deze likes', '');
+      return;
+    }
+
+    const popup = document.createElement('div');
+    popup.className = 'voters-popup';
+    popup.id = 'voters-popup';
+    popup.innerHTML = `
+      <div class="voters-popup-title">❤ ${names.length} stem${names.length !== 1 ? 'men' : ''}</div>
+      ${names.map(n => `<div class="voters-popup-name">${n}</div>`).join('')}
+    `;
+
+    document.body.appendChild(popup);
+    _popupEl = popup;
+
+    // Positie: boven of onder de klik
+    const rect = event.target.getBoundingClientRect();
+    const popupH = names.length * 26 + 40;
+    const top = rect.bottom + 6 + popupH > window.innerHeight
+      ? rect.top - popupH - 6
+      : rect.bottom + 6;
+    const left = Math.min(rect.left, window.innerWidth - 250);
+    popup.style.top  = top  + window.scrollY + 'px';
+    popup.style.left = Math.max(8, left) + 'px';
+
+    // Sluit bij klik buiten
+    setTimeout(() => {
+      document.addEventListener('click', removeVotersPopup, { once: true });
+    }, 10);
+  }
+
+  function removeVotersPopup() {
+    if (_popupEl) { _popupEl.remove(); _popupEl = null; }
+  }
+
+  // ════════════════════════════════════════════
+  // INSTELLINGEN — NUMMERS PER GIG
+  // ════════════════════════════════════════════
+  let _settingsSongs = []; // cache voor de instellingen-songlijst
+
+  async function loadSettingsSongList() {
+    if (!currentGig) return;
+    const listEl = document.getElementById('settings-song-list');
+    if (!listEl) return;
+
+    // Haal artiesten voor deze gig op
+    const { data: gigArtists } = await db.from('gig_artists')
+      .select('artist_id').eq('gig_id', currentGig.id);
+    const artistIds = (gigArtists || []).map(ga => ga.artist_id);
+
+    if (artistIds.length === 0) {
+      listEl.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:12px;font-family:var(--font-retro);text-align:center;">Koppel eerst artiesten aan deze gig</div>';
+      return;
+    }
+
+    const { data: songs } = await db.from('artist_songs')
+      .select('songs(id,title,original_artist)').in('artist_id', artistIds);
+
+    const { data: gigSongsDb } = await db.from('gig_songs')
+      .select('id, song_id, is_active').eq('gig_id', currentGig.id);
+    const gigSongMap = {};
+    gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = { id: gs.id, active: gs.is_active }; });
+
+    const seen = new Set();
+    _settingsSongs = (songs || [])
+      .filter(s => s.songs && !seen.has(s.songs.id) && s.songs.is_active !== false && seen.add(s.songs.id))
+      .map(s => ({
+        ...s.songs,
+        _gigSongId: gigSongMap[s.songs.id]?.id || null,
+        _gigActive: gigSongMap[s.songs.id] ? gigSongMap[s.songs.id].active : true
+      }))
+      .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+
+    renderSettingsSongList(_settingsSongs);
+  }
+
+  function renderSettingsSongList(songs) {
+    const listEl = document.getElementById('settings-song-list');
+    if (!listEl) return;
+    if (!songs || songs.length === 0) {
+      listEl.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:12px;font-family:var(--font-retro);text-align:center;">Geen nummers gevonden</div>';
+      return;
+    }
+    listEl.innerHTML = songs.map((song, i) => {
+      const on = song._gigActive !== false;
+      const border = i < songs.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;${border}" id="ssl-${song.id}">
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:var(--font-display);font-size:16px;color:${on ? 'var(--text)' : 'var(--muted)'};">${song.title}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${song.original_artist || ''}</div>
+        </div>
+        <button class="toggle ${on ? 'on' : ''}" id="sst-${song.id}"
+          onclick="toggleSettingsSong('${song._gigSongId}','${song.id}',this)"
+          title="${on ? 'Uitzetten voor deze gig' : 'Aanzetten voor deze gig'}"></button>
+      </div>`;
+    }).join('');
+  }
+
+  function filterSettingsSongs(query) {
+    const q = query.toLowerCase();
+    const filtered = q
+      ? _settingsSongs.filter(s => s.title?.toLowerCase().includes(q) || s.original_artist?.toLowerCase().includes(q))
+      : _settingsSongs;
+    renderSettingsSongList(filtered);
+  }
+
+  async function toggleSettingsSong(gigSongId, songId, btn) {
+    const nowOn = !btn.classList.contains('on');
+    btn.classList.toggle('on');
+    // Update tekst kleur in dezelfde rij
+    const row = document.getElementById('ssl-' + songId);
+    if (row) {
+      const titleEl = row.querySelector('[style*="font-display"]') || row.querySelector('div > div');
+      if (titleEl) titleEl.style.color = nowOn ? 'var(--text)' : 'var(--muted)';
+    }
+
+    if (gigSongId && gigSongId !== 'null') {
+      await db.from('gig_songs').update({ is_active: nowOn }).eq('id', gigSongId);
+    } else {
+      // Nog geen gig_song record — aanmaken
+      const { data: newGs } = await db.from('gig_songs').insert({
+        gig_id: currentGig.id, song_id: parseInt(songId),
+        is_active: nowOn, vote_count: 0
+      }).select('id').single();
+      // Update cache
+      const song = _settingsSongs.find(s => String(s.id) === String(songId));
+      if (song && newGs) song._gigSongId = newGs.id;
+    }
+    // Update cache
+    const song = _settingsSongs.find(s => String(s.id) === String(songId));
+    if (song) song._gigActive = nowOn;
+
+    showToast(nowOn ? 'Nummer beschikbaar ✓' : 'Nummer uitgezet', nowOn ? 'success' : '');
+    // Sync ook songbook als dat open is
+    if (allSongs.length > 0) {
+      const sb = allSongs.find(s => String(s.id) === String(songId));
+      if (sb) { sb._gigActive = nowOn; }
+      const sbList = document.getElementById('artist-songbook-list');
+      if (sbList && sbList.innerHTML) renderSongbook(allSongs);
+    }
+    loadVoterSongs();
+  }
+
+  // ════════════════════════════════════════════
+  // SONGBOOK — CATEGORIE SYSTEEM
+  // ════════════════════════════════════════════
+
+  // Stel de permanente categorie in voor een nummer
+  async function setSongCategory(songId, category) {
+    const labels = { core: t('cat-core'), optional: t('cat-optional'), archived: t('cat-archived') };
+    const { error } = await db.from('songs')
+      .update({ song_category: category, is_active: category !== 'archived' })
+      .eq('id', songId);
+    if (error) { showToast('Opslaan mislukt', 'error'); return; }
+
+    // gig_songs.is_active: archived → altijd uit, anders aan
+    // (modus-filtering gebeurt live in loadVoterSongs via repertoire_mode)
+    const gigActive = category !== 'archived';
+    await db.from('gig_songs').update({ is_active: gigActive }).eq('song_id', songId);
+
+    showToast(labels[category] + ' ingesteld ✓', 'success');
+    // Update lokaal in allSongs zonder volledige herlaad
+    const s = allSongs.find(x => x.id === songId);
+    if (s) { s.song_category = category; s.is_active = category !== 'archived'; }
+    renderSongbook(allSongs);
+    loadVoterSongs();
+  }
+
+  // Wissel de repertoire-modus van de actieve gig
+  // repertoire_mode in de gigs tabel is de enige bron van waarheid —
+  // geen gig_songs updates nodig, loadVoterSongs leest de modus direct bij elke refresh
+  async function setRepertoireMode(mode) {
+    if (!currentGig) return;
+    await db.from('gigs').update({ repertoire_mode: mode }).eq('id', currentGig.id);
+    currentGig.repertoire_mode = mode;
+    updateRepertoireModeUI(mode);
+    showToast(mode === 'core' ? t('mode-core-btn') : t('mode-full-btn'), 'success');
+    loadArtistSongbook();
+    loadVoterSongs();
+  }
+
+  function updateRepertoireModeUI(mode) {
+    // Settings knoppen
+    ['core','full'].forEach(m => {
+      const btn = document.getElementById('mode-btn-' + m);
+      if (btn) btn.classList.toggle('active', m === mode);
+    });
+    // Songbook knoppen
+    ['core','full'].forEach(m => {
+      const btn = document.getElementById('sb-mode-btn-' + m);
+      if (btn) btn.classList.toggle('active', m === mode);
+    });
+    // Beschrijving
+    const desc = document.getElementById('mode-desc');
+    if (desc) desc.textContent = mode === 'core' ? t('mode-core-desc') : t('mode-full-desc');
+  }
+
+
   // ════════════════════════════════════════════
   const artistTabMap = {
     'queue': 'abtab-queue',
