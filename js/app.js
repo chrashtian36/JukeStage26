@@ -1661,10 +1661,15 @@
     const uniqueArtists = settingsGigArtists.filter(
       (a, i, arr) => arr.findIndex(b => b.id === a.id) === i
     );
-    settingsGigArtists = uniqueArtists; // update state direct
-    await db.from('gig_artists').delete().eq('gig_id', currentGig.id);
+    settingsGigArtists = uniqueArtists;
+    const { error: delErr } = await db.from('gig_artists').delete().eq('gig_id', currentGig.id);
+    if (delErr) {
+      showToast('Fout bij opslaan artiesten: ' + delErr.message, 'error');
+      return;
+    }
     for (const a of uniqueArtists) {
-      await db.from('gig_artists').insert({ gig_id: currentGig.id, artist_id: a.id });
+      await db.from('gig_artists')
+        .upsert({ gig_id: currentGig.id, artist_id: a.id }, { onConflict: 'gig_id,artist_id', ignoreDuplicates: true });
     }
 
     showToast('Instellingen opgeslagen ✓', 'success');
