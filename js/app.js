@@ -107,6 +107,8 @@
       .select('*').single();
     voterSession = sess;
     showView('view-voter');
+    const logoutBtn = document.getElementById('voter-logout-btn');
+    if (logoutBtn) logoutBtn.style.display = voterAuthUser ? '' : 'none';
     loadVoterGigInfo();
     loadVoterQueue();
     loadVoterSongs();
@@ -2387,6 +2389,15 @@
     await db.auth.signOut();
     currentUser = null; currentGig = null; currentArtist = null;
     playedCountThisSession = 0;
+    showView('view-landing');
+  }
+
+  async function voterLogout() {
+    await db.auth.signOut();
+    voterAuthUser = null;
+    voterSession = null;
+    currentGig = null;
+    arrivedViaQR = false;
     showView('view-landing');
   }
 
