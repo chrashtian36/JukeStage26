@@ -45,11 +45,33 @@
       showToast('Vul een geldig e-mailadres in', 'error');
       return;
     }
+    // Hergebruik bestaande sessie als die geldig is (voorkomt rate limit)
+    const { data: { session } } = await db.auth.getSession();
+    if (session && session.user.email === email) {
+      voterAuthUser = session.user;
+      const { data: profile } = await db.from('voter_profiles')
+        .select('display_name').eq('id', session.user.id).single();
+      if (profile) {
+        await _enterAsVoterWithAuth(profile.display_name);
+      } else {
+        const prefill = document.getElementById('voter-account-name');
+        if (prefill) prefill.value = '';
+        showVoterScreen('newname');
+      }
+      return;
+    }
     const { error } = await db.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true }
     });
-    if (error) { showToast('Fout: ' + error.message, 'error'); return; }
+    if (error) {
+      if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
+        showToast('Te veel codes verstuurd. Wacht even of gebruik de laatste code die je hebt ontvangen.', 'error');
+      } else {
+        showToast('Fout: ' + error.message, 'error');
+      }
+      return;
+    }
     voterPendingEmail = email;
     showVoterScreen('code');
   }
@@ -74,7 +96,7 @@
       await _enterAsVoterWithAuth(profile.display_name);
     } else {
       const prefill = document.getElementById('voter-account-name');
-      if (prefill) prefill.value = data.user.email?.split('@')[0] || '';
+      if (prefill) prefill.value = '';
       showVoterScreen('newname');
     }
   }
