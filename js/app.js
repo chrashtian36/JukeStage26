@@ -57,7 +57,7 @@
   async function verifyVoterOTP() {
     const code = document.getElementById('voter-otp-code')?.value.trim();
     if (!code || code.length < 6) {
-      showToast('Vul de 6-cijferige code in', 'error');
+      showToast('Vul de volledige inlogcode in', 'error');
       return;
     }
     const { data, error } = await db.auth.verifyOtp({
