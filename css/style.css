@@ -1225,5 +1225,49 @@
       padding: 4px 0;
       letter-spacing: 0.3px;
     }
+    /* ── QUEUE SORT TOGGLE ── */
+    .sort-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 11px; border-radius: 100px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); cursor: pointer;
+      font-family: var(--font-retro); font-size: 10px; letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+    .sort-btn:hover { border-color: var(--border2); color: var(--text); }
+    .sort-btn.active {
+      background: rgba(255,107,0,0.15); border-color: var(--neon);
+      color: var(--neon); box-shadow: 0 0 8px rgba(255,107,0,0.2);
+    }
+
+    /* ── MULTI REQUEST BADGE ── */
+    .multi-req-badge {
+      display: inline-block;
+      background: var(--neon2); color: #000;
+      font-family: var(--font-mono); font-size: 9px; font-weight: 700;
+      padding: 1px 5px; border-radius: 100px;
+      vertical-align: middle; margin-left: 3px;
+    }
+
+    /* ── QUEUE MESSAGE ITEM ── */
+    .queue-message-item {
+      font-size: 11px; color: var(--muted);
+      font-style: italic; font-family: var(--font-retro);
+      padding: 3px 0 1px;
+    }
+
+    /* ── MULTI ARTIST SONG ── */
+    .song-card.multi-artist {
+      border-color: rgba(255,170,0,0.35);
+      background: linear-gradient(135deg, rgba(255,170,0,0.05), transparent);
+    }
+    .multi-artist-badge {
+      display: inline-block;
+      font-size: 9px; font-family: var(--font-mono);
+      color: var(--neon2); font-weight: 700;
+      vertical-align: middle; margin-left: 6px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+
     /* De apple-touch-icon SVG heeft een viewBox van 0 0 32 32 met padding inherent
        maar voor standalone app icoon gebruiken we een PNG-achtige aanpak */

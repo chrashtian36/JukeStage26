@@ -180,6 +180,8 @@
   // ════════════════════════════════════════════
   let artistPendingEmail   = '';
   let artistPendingAuthUser = null;
+  let queueSortMode    = 'chrono'; // chrono | popular | custom
+  let queueCustomOrder = [];       // song_id array voor eigen volgorde
 
   async function sendArtistOTP() {
     const email = document.getElementById('login-email').value.trim();
@@ -597,58 +599,72 @@
     // Modus bepaalt wat zichtbaar is — dit is de enige bron van waarheid bij refresh
     const gigMode = currentGig?.repertoire_mode || 'full';
 
-    let allGigSongs = [];
+    // Bouw een map: song_id → { songData, artistNames[] } om alle artiesten per nummer bij te houden
+    const songMap = {}; // song_id -> { song_id, songs, gigSongId, artistNames[] }
+
     if (artistIds.length > 0) {
       const { data: artistSongs } = await db.from('artist_songs')
-        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active)')
+        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active, song_category)')
         .in('artist_id', artistIds);
-      const seen = new Set();
-      allGigSongs = (artistSongs || []).filter(as => {
-        if (!as.songs) return false;
-        if (seen.has(as.song_id)) return false;
+
+      (artistSongs || []).forEach(as => {
+        if (!as.songs) return;
+        const sid = as.song_id;
         const cat = as.songs.song_category || (as.songs.is_active === false ? 'archived' : 'optional');
 
         // Gearchiveerde nummers nooit tonen
-        if (cat === 'archived') return false;
+        if (cat === 'archived') return;
 
-        // gig_songs.is_active=false = handmatig uitgeschakeld door artiest, altijd verbergen
-        const gs = gigSongMap[as.song_id];
-        if (gs && gs.is_active === false) return false;
+        // gig_songs.is_active=false = handmatig uitgeschakeld
+        const gs = gigSongMap[sid];
+        if (gs && gs.is_active === false) return;
 
-        // Core nummers: altijd zichtbaar (tenzij handmatig uitgeschakeld hierboven)
-        if (cat === 'core') { seen.add(as.song_id); return true; }
+        // Optionele nummers alleen in 'full' modus
+        if (cat !== 'core' && gigMode !== 'full') return;
 
-        // Optionele nummers: alleen zichtbaar in 'full' modus
-        if (gigMode !== 'full') return false;
-
-        seen.add(as.song_id); return true;
+        if (!songMap[sid]) {
+          songMap[sid] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [] };
+        }
+        // Voeg artiestnaam toe (vermijd duplicaten)
+        const aName = as.artists?.name;
+        if (aName && !songMap[sid].artistNames.includes(aName)) {
+          songMap[sid].artistNames.push(aName);
+        }
       });
     }
 
+    const allGigSongs = Object.values(songMap);
     const list = document.getElementById('voter-song-list');
-    if (!allGigSongs || allGigSongs.length === 0) {
+    if (allGigSongs.length === 0) {
       list.innerHTML = `<div class="empty-state"><p>${t('empty-songs')}</p></div>`; return;
     }
 
     const showKaraoke = currentGig.allow_karaoke !== false;
     const filtered = query
-      ? allGigSongs.filter(as => as.songs?.title?.toLowerCase().includes(query.toLowerCase()) || as.songs?.original_artist?.toLowerCase().includes(query.toLowerCase()))
+      ? allGigSongs.filter(item => item.songs?.title?.toLowerCase().includes(query.toLowerCase()) || item.songs?.original_artist?.toLowerCase().includes(query.toLowerCase()))
       : allGigSongs;
-    filtered.sort((a, b) => (a.songs?.title || '').localeCompare(b.songs?.title || ''));
 
-    list.innerHTML = filtered.map(as => {
-      const gigSongId = gigSongMap[as.song_id]?.id || null;
-      const artistName = as.artists?.name || '';
-      const title = (as.songs?.title||'').replace(/'/g, "\\'");
-      const origArtist = (as.songs?.original_artist||'').replace(/'/g, "\\'");
-      return `<div class="song-card" data-song-id="${as.song_id}" data-gig-song-id="${gigSongId || ''}" data-title="${(as.songs?.title||'').replace(/"/g,'&quot;')}" data-artist="${(as.songs?.original_artist||'').replace(/"/g,'&quot;')}" onclick="openRequestFromCard(this)">`
+    // Sorteer: nummers die door meerdere artiesten gespeeld worden bovenaan, daarna alfabetisch
+    filtered.sort((a, b) => {
+      const aMulti = a.artistNames.length > 1 ? 0 : 1;
+      const bMulti = b.artistNames.length > 1 ? 0 : 1;
+      if (aMulti !== bMulti) return aMulti - bMulti;
+      return (a.songs?.title || '').localeCompare(b.songs?.title || '');
+    });
+
+    list.innerHTML = filtered.map(item => {
+      const isMultiArtist = item.artistNames.length > 1;
+      const artistLine = isMultiArtist
+        ? '🎸 ' + item.artistNames.join(' & ')
+        : (item.artistNames[0] ? '🎸 ' + item.artistNames[0] : '');
+      return `<div class="song-card${isMultiArtist ? ' multi-artist' : ''}" data-song-id="${item.song_id}" data-gig-song-id="${item.gigSongId || ''}" data-title="${(item.songs?.title||'').replace(/"/g,'&quot;')}" data-artist="${(item.songs?.original_artist||'').replace(/"/g,'&quot;')}" onclick="openRequestFromCard(this)">`
         + '<div style="display:flex;align-items:center;justify-content:space-between;">'
         + '<div>'
-        + '<div class="song-card-title">' + (as.songs?.title || 'Onbekend') + '</div>'
-        + '<div class="song-card-artist">' + (as.songs?.original_artist || '') + (artistName ? ' · 🎸 ' + artistName : '') + '</div>'
+        + '<div class="song-card-title">' + (item.songs?.title || 'Onbekend') + (isMultiArtist ? ' <span class="multi-artist-badge">★ Meerdere artiesten</span>' : '') + '</div>'
+        + '<div class="song-card-artist">' + (item.songs?.original_artist || '') + (artistLine ? ' · ' + artistLine : '') + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:7px;">'
-        + (as.songs?.is_karaoke_available && showKaraoke ? '<span class="badge badge-karaoke">🎤 Lyrics</span>' : '')
+        + (item.songs?.is_karaoke_available && showKaraoke ? '<span class="badge badge-karaoke">🎤 Lyrics</span>' : '')
         + '<svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" width="18" height="18"><path d="M9 18l6-6-6-6"/></svg>'
         + '</div></div></div>';
     }).join('');
@@ -1171,6 +1187,16 @@
       const numEl = c.querySelector('.queue-num');
       if (numEl && !numEl.classList.contains('playing')) numEl.textContent = i + 1;
     });
+    // Sla nieuwe volgorde op als custom order (song_ids)
+    queueCustomOrder = [...list.querySelectorAll('.queue-card[data-id]')].map(c => c.dataset.id);
+    // Schakel automatisch over naar eigen volgorde
+    if (queueSortMode !== 'custom') {
+      queueSortMode = 'custom';
+      ['chrono','popular','custom'].forEach(m => {
+        const btn = document.getElementById('sort-btn-' + m);
+        if (btn) btn.classList.toggle('active', m === 'custom');
+      });
+    }
     showToast('Volgorde aangepast ✓', 'success');
   }
 
@@ -1245,9 +1271,9 @@
       .order('created_at', { ascending: true });
 
     const list = document.getElementById('artist-queue-list');
-    document.getElementById('stat-queue').textContent = requests?.length || 0;
 
     if (!requests || requests.length === 0) {
+      document.getElementById('stat-queue').textContent = 0;
       list.innerHTML = `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><p>${t('empty-queue-artist')}</p></div>`;
       return;
     }
@@ -1258,7 +1284,7 @@
       .select('request_id, voter_name')
       .in('request_id', requestIds);
 
-    const voteMap = {};   // request_id -> count
+    const voteMap  = {};  // request_id -> count
     const voterMap = {};  // request_id -> [namen]
     (voteCounts || []).forEach(v => {
       if (!v.request_id) return;
@@ -1267,54 +1293,116 @@
       if (v.voter_name) voterMap[v.request_id].push(v.voter_name);
     });
 
-    // Embed voterMap as JSON on window for popup access
-    window._voterMap = voterMap;
+    // Groepeer requests per song_id
+    const groups = {};       // song_id -> { song, reqs[], firstCreatedAt, totalVotes, voters[], messages[], isPlaying }
+    const groupOrder = [];   // song_ids in chronologische volgorde (eerste aanvraag)
+    requests.forEach(req => {
+      const sid = req.song_id;
+      if (!sid) return;
+      if (!groups[sid]) {
+        groups[sid] = {
+          songId:       sid,
+          song:         req.songs,
+          ug:           req.songs?.ug_tabs,
+          reqs:         [],
+          firstCreatedAt: req.created_at,
+          totalVotes:   0,
+          allVoterNames: [],
+          requesters:   [],
+          messages:     [],
+          isPlaying:    false,
+        };
+        groupOrder.push(sid);
+      }
+      const g = groups[sid];
+      g.reqs.push(req);
+      g.totalVotes += voteMap[req.id] || 0;
+      (voterMap[req.id] || []).forEach(n => g.allVoterNames.push(n));
+      if (req.voter_sessions?.display_name) g.requesters.push(req.voter_sessions.display_name);
+      if (req.message) g.messages.push({ name: req.voter_sessions?.display_name, msg: req.message });
+      if (req.status === 'playing') g.isPlaying = true;
+    });
 
-    list.innerHTML = requests.map((req, i) => {
-      const isPlaying = req.status === 'playing';
-      const ug = req.songs?.ug_tabs;
-      const requester = req.voter_sessions?.display_name;
-      const liveVotes = voteMap[req.id] || req.gig_songs?.vote_count || 0;
-      return `<div class="queue-card ${isPlaying ? 'playing' : ''}" data-id="${req.id}" draggable="true"
+    // Embed voterMap on window for popup (per group: use songId as key)
+    window._voterMap = {};
+    groupOrder.forEach(sid => {
+      window._voterMap[sid] = groups[sid].allVoterNames;
+    });
+
+    document.getElementById('stat-queue').textContent = groupOrder.length;
+
+    // Verwijder song_ids uit queueCustomOrder die niet meer in de queue zitten
+    queueCustomOrder = queueCustomOrder.filter(sid => groups[sid]);
+    // Voeg nieuwe song_ids toe aan het einde van queueCustomOrder
+    groupOrder.forEach(sid => { if (!queueCustomOrder.includes(sid)) queueCustomOrder.push(sid); });
+
+    // Sorteer de groepen op basis van queueSortMode
+    let sortedIds = [...groupOrder];
+    if (queueSortMode === 'popular') {
+      sortedIds.sort((a, b) => groups[b].totalVotes - groups[a].totalVotes || groups[a].firstCreatedAt.localeCompare(groups[b].firstCreatedAt));
+    } else if (queueSortMode === 'custom') {
+      sortedIds = queueCustomOrder.filter(sid => groups[sid]);
+    }
+    // 'chrono' = standaard groupOrder (op volgorde van eerste aanvraag)
+
+    list.innerHTML = sortedIds.map((sid, i) => {
+      const g = groups[sid];
+      const isPlaying = g.isPlaying;
+      const multiReq  = g.reqs.length > 1;
+      const reqNames  = [...new Set(g.requesters)].join(', ');
+      const votes     = g.totalVotes;
+
+      return `<div class="queue-card ${isPlaying ? 'playing' : ''}" data-id="${sid}" draggable="true"
           ondragstart="dragStart(event)" ondragover="dragOver(event)" ondrop="dragDrop(event)" ondragleave="dragLeave(event)">
-        ${!isPlaying ? `<div class="drag-handle" id="dh-${req.id}" title="Versleep">
+        ${!isPlaying ? `<div class="drag-handle" id="dh-${sid}" title="Versleep">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>
         </div>` : ''}
         <div class="queue-num ${isPlaying ? 'playing' : ''}">${isPlaying ? '▶' : i + 1}</div>
         <div style="flex:1;min-width:0;">
-          <div class="queue-song-title">${req.songs?.title || 'Onbekend'}</div>
-          <div class="queue-song-meta">${req.songs?.original_artist || ''} · <span
-            style="cursor:${liveVotes > 0 ? 'pointer' : 'default'};color:${liveVotes > 0 ? 'var(--neon3)' : 'inherit'};text-decoration:${liveVotes > 0 ? 'underline dotted' : 'none'};"
-            onclick="${liveVotes > 0 ? `showVoters(event,'${req.id}')` : ''}"
-            title="${liveVotes > 0 ? 'Klik om te zien wie gestemd heeft' : ''}"
-          >${liveVotes} ${t('lbl-votes')}</span></div>
-          ${requester ? `<div class="requester-badge">🎵 ${t('lbl-requested-by')} ${requester}</div>` : ''}
-          ${ug ? `<a href="${ug}" target="_blank" class="ug-link" onclick="event.stopPropagation()">
+          <div class="queue-song-title">${g.song?.title || 'Onbekend'}</div>
+          <div class="queue-song-meta">${g.song?.original_artist || ''} · <span
+            style="cursor:${votes > 0 ? 'pointer' : 'default'};color:${votes > 0 ? 'var(--neon3)' : 'inherit'};text-decoration:${votes > 0 ? 'underline dotted' : 'none'};"
+            onclick="${votes > 0 ? `showVoters(event,'${sid}')` : ''}"
+            title="${votes > 0 ? 'Klik om te zien wie gestemd heeft' : ''}"
+          >${votes} ${t('lbl-votes')}</span></div>
+          ${reqNames ? `<div class="requester-badge">${multiReq ? '👥' : '🎵'} ${t('lbl-requested-by')} ${reqNames}${multiReq ? ` <span class="multi-req-badge">${g.reqs.length}×</span>` : ''}</div>` : ''}
+          ${g.messages.map(m => `<div class="queue-message-item">${m.name ? `<strong>${m.name}:</strong> ` : ''}"${m.msg}"</div>`).join('')}
+          ${g.ug ? `<a href="${g.ug}" target="_blank" class="ug-link" onclick="event.stopPropagation()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77A5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
             Tabs / Akkoorden
           </a>` : ''}
         </div>
         <div style="display:flex;flex-direction:column;gap:5px;">
           ${isPlaying
-            ? `<button class="btn btn-primary btn-icon" onclick="markPlayed('${req.id}')" title="Gespeeld" style="width:auto;padding:6px 12px;font-size:11px;">${t('lbl-played')}</button>`
-            : `<button class="btn btn-primary btn-icon" onclick="playNow('${req.id}')" title="Nu spelen">
+            ? `<button class="btn btn-primary btn-icon" onclick="markPlayed('${sid}')" title="Gespeeld" style="width:auto;padding:6px 12px;font-size:11px;">${t('lbl-played')}</button>`
+            : `<button class="btn btn-primary btn-icon" onclick="playNow('${sid}')" title="Nu spelen">
                 <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               </button>
-              <button class="btn btn-secondary btn-icon" onclick="skipSong('${req.id}')" title="Overslaan">
+              <button class="btn btn-secondary btn-icon" onclick="skipSong('${sid}')" title="Overslaan">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="14" height="14"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
               </button>`}
         </div>
       </div>`;
     }).join('');
 
-    // Touch drag instellen na render (punt 6)
-    requests.forEach(req => {
-      if (req.status !== 'playing') {
-        const handle = document.getElementById(`dh-${req.id}`);
-        const card   = list.querySelector(`[data-id="${req.id}"]`);
+    // Touch drag instellen na render
+    sortedIds.forEach(sid => {
+      const g = groups[sid];
+      if (!g.isPlaying) {
+        const handle = document.getElementById(`dh-${sid}`);
+        const card   = list.querySelector(`[data-id="${sid}"]`);
         if (handle && card) setupTouchDrag(handle, card);
       }
     });
+  }
+
+  function setQueueSort(mode) {
+    queueSortMode = mode;
+    ['chrono','popular','custom'].forEach(m => {
+      const btn = document.getElementById('sort-btn-' + m);
+      if (btn) btn.classList.toggle('active', m === mode);
+    });
+    loadArtistQueue();
   }
 
   // ════════════════════════════════════════════
@@ -2060,26 +2148,51 @@
 
   // QUEUE ACTIES
   // ════════════════════════════════════════════
-  async function markPlayed(requestId) {
-    await db.from('requests').update({ status: 'played', updated_at: new Date().toISOString() }).eq('id', requestId);
+  async function markPlayed(songId) {
+    // Markeer alle actieve requests voor dit nummer als gespeeld
+    await db.from('requests')
+      .update({ status: 'played', updated_at: new Date().toISOString() })
+      .eq('gig_id', currentGig.id)
+      .eq('song_id', songId)
+      .in('status', ['approved','queued','playing']);
     // Punt 10: verhoog teller in geheugen (persistent over refresh via DB)
     playedCountThisSession++;
     const stat = document.getElementById('stat-played');
     if (stat) stat.textContent = parseInt(stat.textContent) + 1;
+    // Verwijder uit queueCustomOrder
+    queueCustomOrder = queueCustomOrder.filter(sid => sid !== songId);
     showToast('Gespeeld! ✓', 'success');
     loadArtistQueue();
     loadArtistHistory(); // update stat in history direct
   }
 
-  async function skipSong(requestId) {
-    await db.from('requests').update({ status: 'rejected', updated_at: new Date().toISOString() }).eq('id', requestId);
+  async function skipSong(songId) {
+    // Sla alle actieve requests voor dit nummer over
+    await db.from('requests')
+      .update({ status: 'rejected', updated_at: new Date().toISOString() })
+      .eq('gig_id', currentGig.id)
+      .eq('song_id', songId)
+      .in('status', ['approved','queued','playing']);
+    // Verwijder uit queueCustomOrder
+    queueCustomOrder = queueCustomOrder.filter(sid => sid !== songId);
     showToast('Overgeslagen', '');
     loadArtistQueue();
   }
 
-  async function playNow(requestId) {
+  async function playNow(songId) {
+    // Zet huidige 'playing' terug naar 'queued'
     await db.from('requests').update({ status: 'queued' }).eq('gig_id', currentGig.id).eq('status', 'playing');
-    await db.from('requests').update({ status: 'playing', updated_at: new Date().toISOString() }).eq('id', requestId);
+    // Zet de eerste (oudste) approved/queued request voor dit nummer op 'playing'
+    const { data: reqs } = await db.from('requests')
+      .select('id')
+      .eq('gig_id', currentGig.id)
+      .eq('song_id', songId)
+      .in('status', ['approved','queued'])
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if (reqs && reqs.length > 0) {
+      await db.from('requests').update({ status: 'playing', updated_at: new Date().toISOString() }).eq('id', reqs[0].id);
+    }
     showToast('Nu aan het spelen! ▶', 'success');
     loadArtistQueue();
   }
@@ -2429,16 +2542,24 @@
   // ════════════════════════════════════════════
   let _popupEl = null;
 
-  async function showVoters(event, requestId) {
+  async function showVoters(event, songId) {
     event.stopPropagation();
     removeVotersPopup();
 
     // Gebruik gecachte map als beschikbaar, anders haal live op uit DB
-    let names = (window._voterMap || {})[requestId] || null;
-    if (names === null) {
-      const { data: votes } = await db.from('votes')
-        .select('voter_name').eq('request_id', requestId);
-      names = (votes || []).map(v => v.voter_name).filter(Boolean);
+    let names = (window._voterMap || {})[songId] || null;
+    if (names === null && currentGig) {
+      // Haal alle request_ids op voor dit nummer in deze gig
+      const { data: reqs } = await db.from('requests')
+        .select('id').eq('gig_id', currentGig.id).eq('song_id', songId);
+      const reqIds = (reqs || []).map(r => r.id);
+      if (reqIds.length > 0) {
+        const { data: votes } = await db.from('votes')
+          .select('voter_name').in('request_id', reqIds);
+        names = (votes || []).map(v => v.voter_name).filter(Boolean);
+      } else {
+        names = [];
+      }
     }
 
     if (names.length === 0) {

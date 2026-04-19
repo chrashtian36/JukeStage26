@@ -413,9 +413,14 @@
 
     <!-- QUEUE TAB -->
     <div id="atab-queue">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
-        <div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;"><span id="lbl-live-queue-header">Live Wachtrij — versleep om te sorteren</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px;">
+        <div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;"><span id="lbl-live-queue-header">Live Wachtrij</span></div>
         <span class="badge badge-neon" style="font-size:9px;">● Realtime</span>
+      </div>
+      <div id="queue-sort-toggle" style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="sort-btn active" id="sort-btn-chrono" onclick="setQueueSort('chrono')">🕐 <span id="lbl-sort-chrono">Chrono</span></button>
+        <button class="sort-btn" id="sort-btn-popular" onclick="setQueueSort('popular')">🔥 <span id="lbl-sort-popular">Populair</span></button>
+        <button class="sort-btn" id="sort-btn-custom" onclick="setQueueSort('custom')">✋ <span id="lbl-sort-custom">Eigen</span></button>
       </div>
       <div id="artist-queue-list"></div>
     </div>
