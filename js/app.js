@@ -159,7 +159,38 @@
   // ════════════════════════════════════════════
   // LANDING
   // ════════════════════════════════════════════
-  function showLoginForm() {
+  async function showLoginForm() {
+    // Controleer eerst of er al een geldige sessie is — zo ja, direct inloggen
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      let { data: uRows } = await db.from('users')
+        .select('id, role, display_name, auth_id').eq('auth_id', session.user.id).limit(1);
+      let userData = uRows?.[0] || null;
+      if (!userData) {
+        const { data: uByEmail } = await db.from('users')
+          .select('id, role, display_name, auth_id').eq('email', session.user.email).limit(1);
+        userData = uByEmail?.[0] || null;
+      }
+      if (userData) {
+        currentUser = {
+          ...session.user,
+          id: userData.id,
+          auth_id: session.user.id,
+          role: userData.role || 'artist',
+          name: userData.display_name || session.user.email
+        };
+        const badge = document.getElementById('artist-role-badge');
+        badge.textContent = currentUser.role === 'admin' ? 'ADMIN' : 'ARTIEST';
+        badge.className = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
+        if (currentUser.role === 'admin') {
+          document.getElementById('admin-direct-add').style.display = 'block';
+        }
+        showView('view-artist');
+        await loadArtistData();
+        return;
+      }
+    }
+    // Geen geldige sessie — toon OTP-scherm
     document.getElementById('card-choice').style.display = 'none';
     document.getElementById('card-login').style.display = 'block';
     showArtistScreen('email');
@@ -195,7 +226,11 @@
     });
     if (error) {
       if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
-        showToast('Te veel codes verstuurd. Wacht even of gebruik de laatste code.', 'error');
+        // Toon rate-limit melding én spring meteen naar code-invoer (code van eerder gebruiken)
+        artistPendingEmail = email;
+        showArtistScreen('code');
+        document.getElementById('artist-otp-code').value = '';
+        showToast('Rate limit bereikt — gebruik de code uit je laatste e-mail.', 'error');
       } else {
         showToast('Fout: ' + error.message, 'error');
       }
