@@ -2377,7 +2377,6 @@
 
   async function confirmCSVImport() {
     if (!csvValidRows.length) return;
-    if (!currentArtist) { showToast('Geen artiest gekoppeld', 'error'); return; }
 
     const btn   = document.getElementById('btn-confirm-csv-import');
     const label = document.getElementById('lbl-confirm-csv');
@@ -2394,10 +2393,12 @@
       return;
     }
 
-    // Batch insert artist_songs
-    await db.from('artist_songs').insert(
-      inserted.map(s => ({ artist_id: currentArtist.id, song_id: s.id }))
-    );
+    // Batch insert artist_songs (alleen als er een artiest gekoppeld is)
+    if (currentArtist) {
+      await db.from('artist_songs').insert(
+        inserted.map(s => ({ artist_id: currentArtist.id, song_id: s.id }))
+      );
+    }
 
     // Batch insert gig_songs voor huidige gig
     if (currentGig && inserted.length) {
