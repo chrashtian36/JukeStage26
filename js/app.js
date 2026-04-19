@@ -306,13 +306,20 @@
     if (!name) { showToast('Vul een naam in', 'error'); return; }
     if (!artistPendingAuthUser) { showToast('Sessie verlopen, probeer opnieuw', 'error'); return; }
 
+    const btn = document.getElementById('btn-save-artist-profile');
+    if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
     showToast('Account aanmaken...', '');
 
     // 1. Artists-rij aanmaken
     const { data: artistData, error: artistErr } = await db.from('artists')
       .insert({ name, tier: 'free', subscription_valid_until: null })
       .select('id').single();
-    if (artistErr) { showToast('Aanmaken mislukt: ' + artistErr.message, 'error'); return; }
+    if (artistErr) {
+      showToast('Aanmaken mislukt: ' + artistErr.message, 'error');
+      if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+      return;
+    }
 
     // 2. Users-rij aanmaken
     const { data: userData, error: userErr } = await db.from('users')
@@ -323,7 +330,11 @@
         role: 'artist'
       })
       .select('id').single();
-    if (userErr) { showToast('Aanmaken mislukt: ' + userErr.message, 'error'); return; }
+    if (userErr) {
+      showToast('Aanmaken mislukt: ' + userErr.message, 'error');
+      if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+      return;
+    }
 
     // 3. Koppeling user ↔ artist
     await db.from('user_artists').insert({ user_id: userData.id, artist_id: artistData.id });
