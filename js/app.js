@@ -162,57 +162,142 @@
   function showLoginForm() {
     document.getElementById('card-choice').style.display = 'none';
     document.getElementById('card-login').style.display = 'block';
+    showArtistScreen('email');
   }
   function showLandingChoice() {
     document.getElementById('card-choice').style.display = 'block';
     document.getElementById('card-login').style.display = 'none';
   }
+  function showArtistScreen(name) {
+    ['email','code','newname'].forEach(s => {
+      const el = document.getElementById('artist-screen-' + s);
+      if (el) el.style.display = s === name ? 'block' : 'none';
+    });
+  }
 
   // ════════════════════════════════════════════
-  // AUTH
+  // ARTIST AUTH — OTP login + signup
   // ════════════════════════════════════════════
-  async function doLogin() {
+  let artistPendingEmail   = '';
+  let artistPendingAuthUser = null;
+
+  async function sendArtistOTP() {
     const email = document.getElementById('login-email').value.trim();
-    const pw    = document.getElementById('login-password').value;
-    if (!email || !pw) { showToast('Vul alle velden in', 'error'); return; }
-    showToast('Inloggen...', '');
+    if (!email || !email.includes('@')) {
+      showToast('Vul een geldig e-mailadres in', 'error'); return;
+    }
+    showToast('Code versturen...', '');
+    const { error } = await db.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true }
+    });
+    if (error) {
+      if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
+        showToast('Te veel codes verstuurd. Wacht even of gebruik de laatste code.', 'error');
+      } else {
+        showToast('Fout: ' + error.message, 'error');
+      }
+      return;
+    }
+    artistPendingEmail = email;
+    showArtistScreen('code');
+    document.getElementById('artist-otp-code').value = '';
+    showToast('Code verstuurd! Check je e-mail.', 'success');
+  }
 
-    const { data, error } = await db.auth.signInWithPassword({ email, password: pw });
-    if (error) { showToast('Inloggen mislukt', 'error'); return; }
+  async function verifyArtistOTP() {
+    const code = document.getElementById('artist-otp-code')?.value.trim();
+    if (!code || code.length < 6) {
+      showToast('Vul de volledige inlogcode in', 'error'); return;
+    }
+    showToast('Verifiëren...', '');
+    const { data, error } = await db.auth.verifyOtp({
+      email: artistPendingEmail,
+      token: code,
+      type: 'email'
+    });
+    if (error) { showToast('Ongeldige of verlopen code', 'error'); return; }
 
-    // Find user record: try auth_id first, then fall back to email
-    let { data: _uRows1 } = await db.from('users')
+    artistPendingAuthUser = data.user;
+
+    // Zoek users-record: eerst op auth_id, dan op email (bestaande accounts zonder auth_id)
+    let { data: uRows } = await db.from('users')
       .select('id, role, display_name, auth_id').eq('auth_id', data.user.id).limit(1);
-    let userData = _uRows1?.[0] || null;
+    let userData = uRows?.[0] || null;
 
     if (!userData) {
-      // auth_id not set yet — find by email and update auth_id
-      const { data: _uByEmail } = await db.from('users')
-        .select('id, role, display_name, auth_id').eq('email', email).limit(1);
-      userData = _uByEmail?.[0] || null;
+      const { data: uByEmail } = await db.from('users')
+        .select('id, role, display_name, auth_id').eq('email', artistPendingEmail).limit(1);
+      userData = uByEmail?.[0] || null;
       if (userData && !userData.auth_id) {
         await db.from('users').update({ auth_id: data.user.id }).eq('id', userData.id);
+        userData.auth_id = data.user.id;
       }
     }
 
-    currentUser = {
-      ...data.user,
-      id: userData?.id,
-      auth_id: data.user.id,
-      role: userData?.role || 'artist',
-      name: userData?.display_name || email
-    };
+    if (userData) {
+      // Bestaande gebruiker — inloggen
+      currentUser = {
+        ...data.user,
+        id: userData.id,
+        auth_id: data.user.id,
+        role: userData.role || 'artist',
+        name: userData.display_name || artistPendingEmail
+      };
+      showToast('Welkom terug! 🎸', 'success');
+      _enterAsArtist();
+    } else {
+      // Nieuwe gebruiker — naam opgeven
+      document.getElementById('artist-signup-name').value = '';
+      showArtistScreen('newname');
+    }
+  }
 
+  async function saveArtistProfile() {
+    const name = document.getElementById('artist-signup-name')?.value.trim();
+    if (!name) { showToast('Vul een naam in', 'error'); return; }
+    if (!artistPendingAuthUser) { showToast('Sessie verlopen, probeer opnieuw', 'error'); return; }
+
+    showToast('Account aanmaken...', '');
+
+    // 1. Artists-rij aanmaken
+    const { data: artistData, error: artistErr } = await db.from('artists')
+      .insert({ name, tier: 'free', subscription_valid_until: null })
+      .select('id').single();
+    if (artistErr) { showToast('Aanmaken mislukt: ' + artistErr.message, 'error'); return; }
+
+    // 2. Users-rij aanmaken
+    const { data: userData, error: userErr } = await db.from('users')
+      .insert({
+        auth_id: artistPendingAuthUser.id,
+        email:   artistPendingEmail,
+        display_name: name,
+        role: 'artist'
+      })
+      .select('id').single();
+    if (userErr) { showToast('Aanmaken mislukt: ' + userErr.message, 'error'); return; }
+
+    // 3. Koppeling user ↔ artist
+    await db.from('user_artists').insert({ user_id: userData.id, artist_id: artistData.id });
+
+    currentUser = {
+      ...artistPendingAuthUser,
+      id: userData.id,
+      auth_id: artistPendingAuthUser.id,
+      role: 'artist',
+      name
+    };
+    showToast('Welkom bij JukeStage! 🎸', 'success');
+    _enterAsArtist();
+  }
+
+  function _enterAsArtist() {
     const badge = document.getElementById('artist-role-badge');
     badge.textContent = currentUser.role === 'admin' ? 'ADMIN' : 'ARTIEST';
-    badge.className = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
-
-    // Punt 14: toon admin direct-toevoegen als admin
+    badge.className   = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
     if (currentUser.role === 'admin') {
       document.getElementById('admin-direct-add').style.display = 'block';
     }
-
-    showToast('Welkom terug! 🎸', 'success');
     showView('view-artist');
     loadArtistData();
   }

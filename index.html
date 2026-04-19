@@ -80,17 +80,47 @@
     </div>
 
     <div class="login-card" id="card-login" style="display:none;">
-      <div class="modal-title" id="lbl-login-title">Inloggen</div>
-      <div class="input-group">
-        <label class="input-label" id="lbl-email">E-mailadres</label>
-        <input type="email" class="input-field" id="login-email" data-i18n-ph="ph-email" placeholder="jij@voorbeeld.nl">
+
+      <!-- Screen 1: e-mailadres -->
+      <div id="artist-screen-email">
+        <div class="modal-title" id="lbl-artist-login-title">Inloggen / Aanmelden</div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-email">E-mailadres</label>
+          <input type="email" class="input-field" id="login-email" data-i18n-ph="ph-email" placeholder="jij@voorbeeld.nl" autocomplete="email">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="sendArtistOTP()" style="margin-top:6px;" id="btn-send-artist-code">
+          <span id="lbl-send-artist-code">Stuur inlogcode →</span>
+        </button>
+        <button class="btn btn-ghost btn-full" onclick="showLandingChoice()" style="margin-top:6px;">← <span id="lbl-back">Terug</span></button>
+        <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:14px;font-family:var(--font-retro);letter-spacing:0.3px;line-height:1.6;" id="lbl-artist-signup-hint">Nog geen account? Vul je e-mail in — we maken er automatisch een aan.</p>
       </div>
-      <div class="input-group">
-        <label class="input-label" id="lbl-password">Wachtwoord</label>
-        <input type="password" class="input-field" id="login-password" placeholder="••••••••">
+
+      <!-- Screen 2: code invoeren -->
+      <div id="artist-screen-code" style="display:none;">
+        <div style="text-align:center;margin-bottom:18px;">
+          <div style="font-size:32px;margin-bottom:8px;">📬</div>
+          <div style="font-family:var(--font-display);font-size:18px;color:var(--neon2);margin-bottom:6px;" id="lbl-artist-check-email">Check je e-mail</div>
+          <div style="font-family:var(--font-retro);font-size:11px;color:var(--muted);" id="lbl-artist-code-sent">We hebben een 6-cijferige code gestuurd</div>
+        </div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-artist-code-label">Inlogcode</label>
+          <input type="text" class="input-field" placeholder="12345678" id="artist-otp-code" maxlength="8" inputmode="numeric" autocomplete="one-time-code" style="font-size:28px;letter-spacing:8px;text-align:center;font-family:var(--font-mono);">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="verifyArtistOTP()" id="btn-verify-artist-code"><span id="lbl-verify-artist-code">Inloggen →</span></button>
+        <button class="btn btn-ghost btn-full" style="margin-top:6px;" onclick="sendArtistOTP()" id="btn-resend-artist-code">Code opnieuw sturen</button>
+        <button class="btn btn-ghost btn-full" style="margin-top:2px;" onclick="showArtistScreen('email')">← <span id="lbl-other-email">Ander e-mailadres</span></button>
       </div>
-      <button class="btn btn-primary btn-full" onclick="doLogin()" style="margin-top:6px;" id="btn-do-login"><span id="lbl-do-login">Inloggen</span></button>
-      <button class="btn btn-ghost btn-full" onclick="showLandingChoice()" style="margin-top:6px;">← <span id="lbl-back">Terug</span></button>
+
+      <!-- Screen 3: nieuwe gebruiker — artiestennaam -->
+      <div id="artist-screen-newname" style="display:none;">
+        <div style="font-family:var(--font-retro);font-size:11px;color:var(--neon2);margin-bottom:14px;letter-spacing:1px;" id="lbl-artist-welcome">Welkom bij JukeStage! Hoe heet je act?</div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-artist-name-label">Artiest- of bandnaam *</label>
+          <input type="text" class="input-field" id="artist-signup-name" placeholder="bijv. The Rolling Stones" maxlength="60" autocomplete="organization">
+        </div>
+        <button class="btn btn-primary btn-full" onclick="saveArtistProfile()" id="btn-save-artist-profile"><span id="lbl-save-artist-profile">Account aanmaken →</span></button>
+      </div>
+
     </div>
   </div>
 </div>
