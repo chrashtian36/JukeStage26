@@ -2200,6 +2200,222 @@
   }
 
   // ════════════════════════════════════════════
+  // ════════════════════════════════════════════
+  // CSV IMPORT
+  // ════════════════════════════════════════════
+  let csvValidRows  = [];
+  let csvSkipRows   = []; // duplicaten
+  let csvErrorRows  = [];
+
+  function openCSVImportModal() {
+    csvValidRows = []; csvSkipRows = []; csvErrorRows = [];
+    const fileInput = document.getElementById('csv-file-input');
+    if (fileInput) fileInput.value = '';
+    document.getElementById('csv-preview-section').style.display = 'none';
+    document.getElementById('modal-csv-import').classList.add('open');
+  }
+
+  function downloadCSVTemplate() {
+    const header = 'titel,artiest,toonsoort,bpm,ultimate_guitar_url,lyrics_url,lyrics_beschikbaar,categorie\n';
+    const blob = new Blob([header], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'jukestage-songbook-template.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    // Laad bestaande songs voor duplicaatcheck
+    let existingKeys = new Set();
+    if (currentArtist) {
+      const { data: existing } = await db.from('artist_songs')
+        .select('songs(title, original_artist)').eq('artist_id', currentArtist.id);
+      (existing || []).forEach(row => {
+        if (row.songs?.title) {
+          existingKeys.add(
+            row.songs.title.trim().toLowerCase() + '|' +
+            (row.songs.original_artist || '').trim().toLowerCase()
+          );
+        }
+      });
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => _previewCSV(results, existingKeys),
+      error: (err) => showToast('CSV kon niet worden gelezen: ' + err.message, 'error')
+    });
+  }
+
+  function _validateCSVRow(row, rowNum) {
+    const errors = [];
+    const titel   = (row['titel']   || '').trim();
+    const artiest = (row['artiest'] || '').trim();
+    if (!titel)   errors.push('Titel ontbreekt');
+    if (!artiest) errors.push('Artiest ontbreekt');
+
+    const bpmRaw = (row['bpm'] || '').trim();
+    let bpm = null;
+    if (bpmRaw) {
+      const parsed = parseInt(bpmRaw, 10);
+      if (isNaN(parsed) || String(parsed) !== bpmRaw) {
+        errors.push(`BPM is geen geldig getal ('${bpmRaw}')`);
+      } else { bpm = parsed; }
+    }
+
+    const catRaw = (row['categorie'] || '').trim().toLowerCase();
+    const catMap  = { 'vast': 'core', 'optioneel': 'optional', 'archief': 'archived', '': 'optional' };
+    if (catRaw && !(catRaw in catMap)) {
+      errors.push(`Categorie ongeldig ('${catRaw}') — gebruik vast/optioneel/archief`);
+    }
+
+    const ugUrl      = (row['ultimate_guitar_url'] || '').trim();
+    const lyricsUrl  = (row['lyrics_url']          || '').trim();
+    if (ugUrl     && !/^https?:\/\//i.test(ugUrl))
+      errors.push(`Ultimate Guitar URL ongeldig (moet beginnen met http/https)`);
+    if (lyricsUrl && !/^https?:\/\//i.test(lyricsUrl))
+      errors.push(`Lyrics URL ongeldig (moet beginnen met http/https)`);
+
+    if (errors.length) return { valid: false, errors, rowNum };
+
+    const isKaraoke  = (row['lyrics_beschikbaar'] || '').trim().toLowerCase() === 'ja';
+    const songCat    = catMap[catRaw] || 'optional';
+    return {
+      valid: true,
+      data: {
+        title: titel,
+        original_artist: artiest,
+        key_signature: (row['toonsoort'] || '').trim() || null,
+        tempo_bpm: bpm,
+        ug_tabs: ugUrl || null,
+        karaoke_url: lyricsUrl || null,
+        is_karaoke_available: isKaraoke,
+        song_category: songCat,
+        is_active: songCat !== 'archived',
+        created_at: new Date().toISOString()
+      }
+    };
+  }
+
+  function _previewCSV(results, existingKeys) {
+    csvValidRows = []; csvSkipRows = []; csvErrorRows = [];
+
+    results.data.forEach((row, idx) => {
+      const rowNum = idx + 2; // rij 1 = header
+      const result = _validateCSVRow(row, rowNum);
+      if (!result.valid) {
+        csvErrorRows.push({ rowNum, errors: result.errors });
+      } else {
+        const key = result.data.title.toLowerCase() + '|' + result.data.original_artist.toLowerCase();
+        if (existingKeys.has(key)) {
+          csvSkipRows.push({ rowNum, title: result.data.title, artist: result.data.original_artist });
+        } else {
+          csvValidRows.push(result.data);
+        }
+      }
+    });
+
+    // Summary pills
+    const summaryEl = document.getElementById('csv-summary');
+    summaryEl.innerHTML =
+      `<span class="csv-summary-pill valid">✓ ${csvValidRows.length} importeerbaar</span>` +
+      (csvSkipRows.length  ? `<span class="csv-summary-pill skipped">↷ ${csvSkipRows.length} duplicaat</span>` : '') +
+      (csvErrorRows.length ? `<span class="csv-summary-pill error">✗ ${csvErrorRows.length} ongeldig</span>` : '');
+
+    // Preview tabel (eerste 10 geldige rijen)
+    const tableWrap = document.getElementById('csv-preview-table-wrap');
+    if (csvValidRows.length > 0) {
+      const rows = csvValidRows.slice(0, 10);
+      const catLabel = { core: '⭐ Vast', optional: '🎵 Optioneel', archived: '🗃 Archief' };
+      tableWrap.innerHTML =
+        '<table class="csv-preview-table"><thead><tr>'
+        + '<th>#</th><th>Titel</th><th>Artiest</th><th>Cat.</th>'
+        + '</tr></thead><tbody>'
+        + rows.map((r, i) =>
+            `<tr><td style="color:var(--muted);font-family:var(--font-mono);">${i + 1}</td>`
+            + `<td title="${r.title}">${r.title}</td>`
+            + `<td title="${r.original_artist}">${r.original_artist}</td>`
+            + `<td style="white-space:nowrap;">${catLabel[r.song_category] || '🎵'}</td></tr>`
+          ).join('')
+        + '</tbody></table>'
+        + (csvValidRows.length > 10
+            ? `<div style="font-family:var(--font-retro);font-size:10px;color:var(--muted);padding:6px 10px;">... en nog ${csvValidRows.length - 10} meer</div>`
+            : '');
+    } else {
+      tableWrap.innerHTML = '<div style="padding:12px;font-family:var(--font-retro);font-size:11px;color:var(--muted);">Geen geldige rijen gevonden.</div>';
+    }
+
+    // Fout- en duplicatenlijst
+    const errorList = document.getElementById('csv-error-list');
+    const errorItems = [
+      ...csvErrorRows.flatMap(e => e.errors.map(msg => `Rij ${e.rowNum}: ${msg}`)),
+      ...csvSkipRows.map(s => `Rij ${s.rowNum}: "${s.title}" — ${s.artist} (duplicaat, overgeslagen)`)
+    ];
+    if (errorItems.length > 0) {
+      errorList.style.display = 'block';
+      errorList.innerHTML =
+        '<div style="font-family:var(--font-retro);font-size:10px;letter-spacing:1px;color:var(--muted);margin-bottom:6px;">DETAILS</div>'
+        + errorItems.map(e => `<div class="csv-error-item">• ${e}</div>`).join('');
+    } else {
+      errorList.style.display = 'none';
+    }
+
+    // Bevestigingsknop
+    const confirmBtn = document.getElementById('btn-confirm-csv-import');
+    const labelEl    = document.getElementById('lbl-confirm-csv');
+    const count      = csvValidRows.length;
+    if (labelEl) labelEl.textContent = `Importeer ${count} nummer${count !== 1 ? 's' : ''}`;
+    confirmBtn.disabled = count === 0;
+
+    document.getElementById('csv-preview-section').style.display = 'block';
+  }
+
+  async function confirmCSVImport() {
+    if (!csvValidRows.length) return;
+    if (!currentArtist) { showToast('Geen artiest gekoppeld', 'error'); return; }
+
+    const btn   = document.getElementById('btn-confirm-csv-import');
+    const label = document.getElementById('lbl-confirm-csv');
+    btn.disabled = true;
+    if (label) label.textContent = 'Importeren...';
+
+    // Batch insert songs
+    const { data: inserted, error } = await db.from('songs')
+      .insert(csvValidRows).select('id');
+    if (error) {
+      showToast('Import mislukt: ' + error.message, 'error');
+      btn.disabled = false;
+      if (label) label.textContent = `Importeer ${csvValidRows.length} nummers`;
+      return;
+    }
+
+    // Batch insert artist_songs
+    await db.from('artist_songs').insert(
+      inserted.map(s => ({ artist_id: currentArtist.id, song_id: s.id }))
+    );
+
+    // Batch insert gig_songs voor huidige gig
+    if (currentGig && inserted.length) {
+      await db.from('gig_songs').insert(
+        inserted.map(s => ({ gig_id: currentGig.id, song_id: s.id, is_active: true, vote_count: 0 }))
+      );
+    }
+
+    const skippedTotal = csvSkipRows.length + csvErrorRows.length;
+    const msg = skippedTotal > 0
+      ? `${inserted.length} nummers geïmporteerd, ${skippedTotal} overgeslagen`
+      : `${inserted.length} nummers geïmporteerd ✓`;
+
+    showToast(msg, 'success');
+    closeModal('modal-csv-import');
+    loadArtistSongbook();
+  }
+
+  // ════════════════════════════════════════════
   // VOTERS POPUP
   // ════════════════════════════════════════════
   let _popupEl = null;

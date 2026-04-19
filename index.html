@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Righteous&family=Special+Elite&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -442,7 +443,10 @@
     <div id="atab-songbook" style="display:none;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
         <div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;"><span id="lbl-my-songbook">Mijn Songbook</span></div>
-        <button class="btn btn-primary" style="padding:7px 14px;font-size:11px;" onclick="openAddSongModal()" id="btn-add-song">+ Nummer</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary" style="padding:7px 12px;font-size:11px;" onclick="openCSVImportModal()" id="btn-import-csv"><span id="lbl-import-csv">↑ CSV</span></button>
+          <button class="btn btn-primary" style="padding:7px 14px;font-size:11px;" onclick="openAddSongModal()" id="btn-add-song">+ Nummer</button>
+        </div>
       </div>
       <!-- Snelle modus-schakelaar in songbook -->
       <div class="mode-toggle-wrap" id="songbook-mode-wrap">
@@ -708,6 +712,41 @@
     <div style="margin-top:12px;">
       <button class="btn btn-secondary btn-full" onclick="closeModal('modal-gig-switch')">Sluiten</button>
     </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL: CSV Import ═══════════════════════ -->
+<div class="modal-overlay" id="modal-csv-import">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="lbl-csv-modal-title">Songbook importeren via CSV</div>
+
+    <!-- Stap 1: Upload -->
+    <div id="csv-upload-section">
+      <p style="font-size:12px;color:var(--muted);font-family:var(--font-retro);margin-bottom:16px;letter-spacing:0.3px;line-height:1.7;" id="lbl-csv-hint">
+        Minimaal <strong style="color:var(--text);">Titel</strong> en <strong style="color:var(--text);">Artiest</strong> zijn verplicht, de rest is optioneel.
+      </p>
+      <button class="btn btn-secondary btn-full" style="margin-bottom:12px;" onclick="downloadCSVTemplate()" id="btn-download-template">
+        ↓ <span id="lbl-download-template">Download template</span>
+      </button>
+      <label class="csv-upload-label" id="csv-upload-label" for="csv-file-input">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="28" height="28" style="margin-bottom:8px;opacity:0.5;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span id="lbl-csv-upload-text">Klik om een CSV-bestand te kiezen</span>
+        <input type="file" id="csv-file-input" accept=".csv,text/csv" style="display:none;" onchange="handleCSVFile(this)">
+      </label>
+    </div>
+
+    <!-- Stap 2: Preview (verborgen tot na parse) -->
+    <div id="csv-preview-section" style="display:none;">
+      <div id="csv-summary" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;"></div>
+      <div id="csv-preview-table-wrap" style="overflow-x:auto;margin-bottom:12px;border:1px solid var(--border);border-radius:10px;"></div>
+      <div id="csv-error-list" style="display:none;margin-bottom:12px;"></div>
+      <button class="btn btn-primary btn-full" id="btn-confirm-csv-import" onclick="confirmCSVImport()">
+        <span id="lbl-confirm-csv">Importeer</span>
+      </button>
+    </div>
+
+    <button class="btn btn-ghost btn-full" style="margin-top:8px;" onclick="closeModal('modal-csv-import')" id="btn-cancel-csv">Annuleren</button>
   </div>
 </div>
 

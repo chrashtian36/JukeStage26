@@ -1155,5 +1155,75 @@
       transition: all 0.2s; text-transform: uppercase;
     }
     .mode-btn.active { background: var(--neon); color: #000; font-weight: 700; }
+
+    /* ══════════════════════════════════════════
+       CSV IMPORT
+    ══════════════════════════════════════════ */
+    .csv-upload-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      border: 2px dashed var(--border2);
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--font-retro);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .csv-upload-label:hover {
+      border-color: var(--neon);
+      background: rgba(255,107,0,0.04);
+      color: var(--chrome);
+    }
+    .csv-summary-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+    .csv-summary-pill.valid   { background: rgba(0,230,118,0.12); border: 1px solid rgba(0,230,118,0.3); color: var(--green); }
+    .csv-summary-pill.skipped { background: rgba(255,170,0,0.10); border: 1px solid rgba(255,170,0,0.3); color: var(--neon2); }
+    .csv-summary-pill.error   { background: rgba(255,51,102,0.10); border: 1px solid rgba(255,51,102,0.3); color: var(--neon3); }
+    .csv-preview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .csv-preview-table th {
+      font-family: var(--font-retro);
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .csv-preview-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(74,51,37,0.4);
+      color: var(--text);
+      max-width: 140px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .csv-preview-table tr:last-child td { border-bottom: none; }
+    .csv-error-item {
+      font-family: var(--font-retro);
+      font-size: 11px;
+      color: var(--neon3);
+      padding: 4px 0;
+      letter-spacing: 0.3px;
+    }
     /* De apple-touch-icon SVG heeft een viewBox van 0 0 32 32 met padding inherent
        maar voor standalone app icoon gebruiken we een PNG-achtige aanpak */
