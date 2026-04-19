@@ -2393,10 +2393,17 @@
       return;
     }
 
-    // Batch insert artist_songs (alleen als er een artiest gekoppeld is)
-    if (currentArtist) {
+    // Bepaal artist_id: currentArtist, of fallback via gig_artists
+    let importArtistId = currentArtist?.id || null;
+    if (!importArtistId && currentGig) {
+      const { data: ga } = await db.from('gig_artists')
+        .select('artist_id').eq('gig_id', currentGig.id).limit(1);
+      importArtistId = ga?.[0]?.artist_id || null;
+    }
+
+    if (importArtistId) {
       await db.from('artist_songs').insert(
-        inserted.map(s => ({ artist_id: currentArtist.id, song_id: s.id }))
+        inserted.map(s => ({ artist_id: importArtistId, song_id: s.id }))
       );
     }
 
