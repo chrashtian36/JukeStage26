@@ -207,6 +207,17 @@
     showToast('Code verstuurd! Check je e-mail.', 'success');
   }
 
+  function useExistingCode() {
+    const email = document.getElementById('login-email')?.value.trim();
+    if (!email || !email.includes('@')) {
+      showToast('Vul eerst je e-mailadres in', 'error'); return;
+    }
+    artistPendingEmail = email;
+    showArtistScreen('code');
+    document.getElementById('artist-otp-code').value = '';
+    document.getElementById('artist-otp-code').focus();
+  }
+
   async function verifyArtistOTP() {
     const code = document.getElementById('artist-otp-code')?.value.trim();
     if (!code || code.length < 6) {

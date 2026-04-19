@@ -1225,6 +1225,15 @@
       padding: 4px 0;
       letter-spacing: 0.3px;
     }
+    /* ── SUBTLE LINK BUTTON ── */
+    .btn-link-subtle {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-retro); font-size: 11px;
+      color: var(--muted); letter-spacing: 0.5px;
+      padding: 2px 0; transition: color 0.15s;
+    }
+    .btn-link-subtle:hover { color: var(--neon); }
+
     /* ── QUEUE SORT TOGGLE ── */
     .sort-btn {
       display: inline-flex; align-items: center; gap: 4px;
