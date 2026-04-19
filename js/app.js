@@ -2252,9 +2252,10 @@
   }
 
   function _validateCSVRow(row, rowNum) {
-    const errors = [];
     const titel   = (row['titel']   || '').trim();
     const artiest = (row['artiest'] || '').trim();
+
+    const errors = [];
     if (!titel)   errors.push('Titel ontbreekt');
     if (!artiest) errors.push('Artiest ontbreekt');
 
@@ -2273,8 +2274,8 @@
       errors.push(`Categorie ongeldig ('${catRaw}') — gebruik vast/optioneel/archief`);
     }
 
-    const ugUrl      = (row['ultimate_guitar_url'] || '').trim();
-    const lyricsUrl  = (row['lyrics_url']          || '').trim();
+    const ugUrl     = (row['ultimate_guitar_url'] || '').trim();
+    const lyricsUrl = (row['lyrics_url']          || '').trim();
     if (ugUrl     && !/^https?:\/\//i.test(ugUrl))
       errors.push(`Ultimate Guitar URL ongeldig (moet beginnen met http/https)`);
     if (lyricsUrl && !/^https?:\/\//i.test(lyricsUrl))
@@ -2282,8 +2283,8 @@
 
     if (errors.length) return { valid: false, errors, rowNum };
 
-    const isKaraoke  = (row['lyrics_beschikbaar'] || '').trim().toLowerCase() === 'ja';
-    const songCat    = catMap[catRaw] || 'optional';
+    const isKaraoke = (row['lyrics_beschikbaar'] || '').trim().toLowerCase() === 'ja';
+    const songCat   = catMap[catRaw] || 'optional';
     return {
       valid: true,
       data: {
