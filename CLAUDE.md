@@ -93,3 +93,25 @@ Voter QR links use `https://jukestage.live/?gig=<qr_token>`. When a voter arrive
 ## Deployment
 
 Push to `main` → auto-deploys to Vercel. Edge function secrets (`GENIUS_ACCESS_TOKEN`, `SUPABASE_SERVICE_ROLE_KEY`) are set in the Supabase project dashboard.
+
+## Edge Functions
+
+| Function | Trigger | Doel |
+|---|---|---|
+| `fetch-genius-urls` | Handmatig | Genius lyrics-URLs backfillen voor songs |
+| `notify-artist-signup` | Aangeroepen vanuit `saveArtistProfile()` in `app.js` | E-mailnotificatie bij nieuwe artiest-signup |
+
+### notify-artist-signup — eenmalige setup
+
+1. **Resend-account**: maak aan op [resend.com](https://resend.com)
+2. **Domein verifiëren**: voeg DNS-records toe voor `jukestage.live` (Resend → Domains)
+3. **API-key genereren**: Resend → API Keys → Create API Key
+4. **Secrets instellen** in Supabase dashboard → Settings → Edge Functions → Secrets:
+   - `RESEND_API_KEY` = jouw Resend API-key
+   - `NOTIFY_EMAIL` = het e-mailadres waarop je notificaties wil ontvangen
+5. **Deployen**:
+   ```bash
+   supabase functions deploy notify-artist-signup
+   ```
+
+> De aanroep in `saveArtistProfile()` is fire-and-forget: als Resend faalt, logt de browser een waarschuwing maar wordt de signup-flow nooit geblokkeerd.

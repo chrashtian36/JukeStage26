@@ -289,6 +289,11 @@
     };
     showToast('Welkom bij JukeStage! 🎸', 'success');
     _enterAsArtist();
+
+    // Fire-and-forget notificatie — fout blokkeert signup nooit
+    db.functions.invoke('notify-artist-signup', {
+      body: { name, email: artistPendingEmail, tier: 'free', created_at: new Date().toISOString() }
+    }).catch(e => console.warn('Signup notification failed:', e));
   }
 
   function _enterAsArtist() {
