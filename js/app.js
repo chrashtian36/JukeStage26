@@ -1934,19 +1934,30 @@
     currentGig.allow_requests = allowReq;
     currentGig.allow_votes = allowVote;
 
-    // Sync gig_artists: dedupliceer eerst, dan verwijder+insert
+    // Sync gig_artists: diff-based (alleen toevoegen/verwijderen wat echt veranderd is)
     const uniqueArtists = settingsGigArtists.filter(
       (a, i, arr) => arr.findIndex(b => b.id === a.id) === i
     );
     settingsGigArtists = uniqueArtists;
-    const { error: delErr } = await db.from('gig_artists').delete().eq('gig_id', currentGig.id);
-    if (delErr) {
-      showToast('Fout bij opslaan artiesten: ' + delErr.message, 'error');
-      return;
+
+    const { data: currentGA } = await db.from('gig_artists')
+      .select('artist_id').eq('gig_id', currentGig.id);
+    const currentIds = new Set((currentGA || []).map(r => r.artist_id));
+    const desiredIds = new Set(uniqueArtists.map(a => a.id));
+
+    // Verwijder artiesten die niet meer in de lijst staan
+    for (const id of currentIds) {
+      if (!desiredIds.has(id)) {
+        const { error: delErr } = await db.from('gig_artists')
+          .delete().eq('gig_id', currentGig.id).eq('artist_id', id);
+        if (delErr) showToast('Fout bij verwijderen artiest: ' + delErr.message, 'error');
+      }
     }
+    // Voeg nieuwe artiesten toe
     for (const a of uniqueArtists) {
-      await db.from('gig_artists')
-        .upsert({ gig_id: currentGig.id, artist_id: a.id }, { onConflict: 'gig_id,artist_id', ignoreDuplicates: true });
+      if (!currentIds.has(a.id)) {
+        await db.from('gig_artists').insert({ gig_id: currentGig.id, artist_id: a.id });
+      }
     }
 
     // Zorg dat elke gekoppelde artiest ook een user_gigs-rij heeft zodat ze de gig zien na refresh
