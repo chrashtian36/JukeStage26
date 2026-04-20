@@ -2112,7 +2112,7 @@
     el.innerHTML = list.map(a => `
       <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:4px 10px;font-size:12px;">
         <span>${a.name}</span>
-        <button onclick="removeGigArtist('${context}','${a.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;line-height:1;font-size:14px;">✕</button>
+        <button onclick="removeGigArtist('${context}',${a.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;line-height:1;font-size:14px;">✕</button>
       </div>`).join('');
   }
 
