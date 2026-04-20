@@ -1190,6 +1190,7 @@
       font-size: 11px;
     }
     .csv-summary-pill.valid   { background: rgba(0,230,118,0.12); border: 1px solid rgba(0,230,118,0.3); color: var(--green); }
+    .csv-summary-pill.link    { background: rgba(100,180,255,0.10); border: 1px solid rgba(100,180,255,0.3); color: #64b4ff; }
     .csv-summary-pill.skipped { background: rgba(255,170,0,0.10); border: 1px solid rgba(255,170,0,0.3); color: var(--neon2); }
     .csv-summary-pill.error   { background: rgba(255,51,102,0.10); border: 1px solid rgba(255,51,102,0.3); color: var(--neon3); }
     .csv-preview-table {

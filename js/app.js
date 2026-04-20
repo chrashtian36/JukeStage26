@@ -656,8 +656,9 @@
     // Modus bepaalt wat zichtbaar is — dit is de enige bron van waarheid bij refresh
     const gigMode = currentGig?.repertoire_mode || 'full';
 
-    // Bouw een map: song_id → { songData, artistNames[] } om alle artiesten per nummer bij te houden
-    const songMap = {}; // song_id -> { song_id, songs, gigSongId, artistNames[] }
+    // Bouw een map: 'title_lower|artist_lower' → { song_id, songs, gigSongId, artistNames[] }
+    // Dedupliceer op titel+artiest zodat dezelfde song van meerdere artiesten als één kaart verschijnt
+    const songMap = {};
 
     if (artistIds.length > 0) {
       const { data: artistSongs } = await db.from('artist_songs')
@@ -679,13 +680,19 @@
         // Optionele nummers alleen in 'full' modus
         if (cat !== 'core' && gigMode !== 'full') return;
 
-        if (!songMap[sid]) {
-          songMap[sid] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [] };
+        // Dedupliceert op titel+original_artist
+        const key = (as.songs.title || '').toLowerCase() + '|' + (as.songs.original_artist || '').toLowerCase();
+        if (!songMap[key]) {
+          songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [] };
+        } else if (!songMap[key].gigSongId && gs?.id) {
+          // Geef voorkeur aan entry met een gig_songs-koppeling
+          songMap[key].gigSongId = gs.id;
+          songMap[key].song_id   = sid;
         }
         // Voeg artiestnaam toe (vermijd duplicaten)
         const aName = as.artists?.name;
-        if (aName && !songMap[sid].artistNames.includes(aName)) {
-          songMap[sid].artistNames.push(aName);
+        if (aName && !songMap[key].artistNames.includes(aName)) {
+          songMap[key].artistNames.push(aName);
         }
       });
     }
@@ -1019,6 +1026,15 @@
         .select('gig_id, gigs(*)').eq('user_id', _ugId);
       if (ugErr) console.warn('user_gigs query failed:', ugErr.message);
       else userGigs = _ugData;
+    }
+
+    // Fallback: artiest is via gig_artists aan een gig gekoppeld maar heeft geen user_gigs-rij
+    if ((!userGigs || userGigs.length === 0) && currentArtist?.id) {
+      const { data: gaRows } = await db.from('gig_artists')
+        .select('gig_id, gigs(*)').eq('artist_id', currentArtist.id);
+      if (gaRows?.length) {
+        userGigs = gaRows.filter(r => r.gigs);
+      }
     }
 
     // Smart sort: live > upcoming (most recent) > finished
@@ -1545,20 +1561,18 @@
   // ARTIEST — SONGBOOK
   // ════════════════════════════════════════════
   async function loadArtistSongbook() {
-    if (!currentUser || !currentGig) return;
+    if (!currentUser) return;
 
-    const { data: gigArtists } = await db.from('gig_artists')
-      .select('artist_id, artists(name)').eq('gig_id', currentGig.id);
-    const artistIds = gigArtists?.map(ga => ga.artist_id) || [];
-
-    if (artistIds.length === 0) {
+    // Songbook toont alleen songs van de ingelogde artiest zelf — geen gig nodig
+    const ownArtistId = currentArtist?.id;
+    if (!ownArtistId) {
       allSongs = []; renderSongbook(allSongs); return;
     }
 
     // Basis song-info (kolommen die zeker bestaan)
     const { data: songs, error: songsErr } = await db.from('artist_songs')
       .select('songs(id,title,original_artist,key_signature,tempo_bpm,genre,ug_tabs,karaoke_url,is_karaoke_available,is_active), artists(name)')
-      .in('artist_id', artistIds);
+      .eq('artist_id', ownArtistId);
 
     if (songsErr) { console.error('loadArtistSongbook:', songsErr.message); return; }
 
@@ -1576,16 +1590,20 @@
       }
     } catch(e) { /* kolom bestaat nog niet — prima, we gebruiken fallback */ }
 
-    // Haal gig_songs op voor deze gig (inclusief inactieve)
-    const { data: gigSongsDb } = await db.from('gig_songs')
-      .select('id, song_id, is_active').eq('gig_id', currentGig.id);
+    // Haal gig_songs op voor de actieve gig indien beschikbaar
     const gigSongMap = {};
-    gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = { id: gs.id, active: gs.is_active }; });
+    if (currentGig) {
+      const { data: gigSongsDb } = await db.from('gig_songs')
+        .select('id, song_id, is_active').eq('gig_id', currentGig.id);
+      gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = { id: gs.id, active: gs.is_active }; });
+    }
 
     const seen = new Set();
     allSongs = (songs || []).filter(s => {
-      if (!s.songs || seen.has(s.songs.id)) return false;
-      seen.add(s.songs.id); return true;
+      if (!s.songs) return false;
+      const key = (s.songs.title || '').toLowerCase() + '|' + (s.songs.original_artist || '').toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
     }).map(s => {
       const gs = gigSongMap[s.songs.id];
       // Fallback: als song_category kolom niet bestaat → afleiden van is_active + gig_songs
@@ -1931,6 +1949,25 @@
         .upsert({ gig_id: currentGig.id, artist_id: a.id }, { onConflict: 'gig_id,artist_id', ignoreDuplicates: true });
     }
 
+    // Zorg dat elke gekoppelde artiest ook een user_gigs-rij heeft zodat ze de gig zien na refresh
+    if (uniqueArtists.length > 0) {
+      const { data: uaRows } = await db.from('user_artists')
+        .select('user_id').in('artist_id', uniqueArtists.map(a => a.id));
+      if (uaRows?.length) {
+        const userIds = uaRows.map(ua => ua.user_id);
+        // Haal bestaande user_gigs-rijen op om duplicaten te vermijden
+        const { data: existingUG } = await db.from('user_gigs')
+          .select('user_id').eq('gig_id', currentGig.id).in('user_id', userIds);
+        const alreadyLinked = new Set((existingUG || []).map(r => r.user_id));
+        const toInsert = userIds.filter(uid => !alreadyLinked.has(uid));
+        if (toInsert.length) {
+          await db.from('user_gigs').insert(
+            toInsert.map(uid => ({ user_id: uid, gig_id: currentGig.id }))
+          );
+        }
+      }
+    }
+
     showToast('Instellingen opgeslagen ✓', 'success');
     // Herlaad alleen wat echt hoeft — NIET loadArtistData() want dat reset settingsGigArtists
     updateActiveGigPill(currentGig);
@@ -2075,7 +2112,7 @@
     el.innerHTML = list.map(a => `
       <div style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;padding:4px 10px;font-size:12px;">
         <span>${a.name}</span>
-        <button onclick="removeGigArtist('${context}',${a.id})" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;line-height:1;font-size:14px;">✕</button>
+        <button onclick="removeGigArtist('${context}','${a.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0;line-height:1;font-size:14px;">✕</button>
       </div>`).join('');
   }
 
@@ -2374,11 +2411,12 @@
   // CSV IMPORT
   // ════════════════════════════════════════════
   let csvValidRows  = [];
-  let csvSkipRows   = []; // duplicaten
+  let csvLinkRows   = []; // al in DB maar nog niet gekoppeld aan deze artiest
+  let csvSkipRows   = []; // al gekoppeld aan deze artiest
   let csvErrorRows  = [];
 
   function openCSVImportModal() {
-    csvValidRows = []; csvSkipRows = []; csvErrorRows = [];
+    csvValidRows = []; csvLinkRows = []; csvSkipRows = []; csvErrorRows = [];
     const fileInput = document.getElementById('csv-file-input');
     if (fileInput) fileInput.value = '';
     document.getElementById('csv-preview-section').style.display = 'none';
@@ -2398,14 +2436,14 @@
     const file = input.files[0];
     if (!file) return;
 
-    // Laad bestaande songs voor duplicaatcheck
-    let existingKeys = new Set();
+    // Songs die al gekoppeld zijn aan deze artiest (echte duplicaten → overslaan)
+    let ownKeys = new Set();
     if (currentArtist) {
       const { data: existing } = await db.from('artist_songs')
         .select('songs(title, original_artist)').eq('artist_id', currentArtist.id);
       (existing || []).forEach(row => {
         if (row.songs?.title) {
-          existingKeys.add(
+          ownKeys.add(
             row.songs.title.trim().toLowerCase() + '|' +
             (row.songs.original_artist || '').trim().toLowerCase()
           );
@@ -2416,7 +2454,25 @@
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => _previewCSV(results, existingKeys),
+      complete: async (results) => {
+        // Verzamel unieke titels uit de CSV om globale DB-check te beperken
+        const titlesInCSV = [...new Set(
+          results.data.map(r => (r['titel'] || '').trim()).filter(Boolean)
+        )];
+
+        // Zoek bestaande songs in de DB op basis van die titels
+        let globalSongMap = {}; // 'title_lower|artist_lower' → song_id
+        if (titlesInCSV.length > 0) {
+          const { data: globalSongs } = await db.from('songs')
+            .select('id, title, original_artist').in('title', titlesInCSV);
+          (globalSongs || []).forEach(s => {
+            const key = s.title.trim().toLowerCase() + '|' + (s.original_artist || '').trim().toLowerCase();
+            if (!globalSongMap[key]) globalSongMap[key] = s.id;
+          });
+        }
+
+        _previewCSV(results, ownKeys, globalSongMap);
+      },
       error: (err) => showToast('CSV kon niet worden gelezen: ' + err.message, 'error')
     });
   }
@@ -2472,8 +2528,8 @@
     };
   }
 
-  function _previewCSV(results, existingKeys) {
-    csvValidRows = []; csvSkipRows = []; csvErrorRows = [];
+  function _previewCSV(results, ownKeys, globalSongMap) {
+    csvValidRows = []; csvLinkRows = []; csvSkipRows = []; csvErrorRows = [];
 
     results.data.forEach((row, idx) => {
       const rowNum = idx + 2; // rij 1 = header
@@ -2482,8 +2538,11 @@
         csvErrorRows.push({ rowNum, errors: result.errors });
       } else {
         const key = result.data.title.toLowerCase() + '|' + result.data.original_artist.toLowerCase();
-        if (existingKeys.has(key)) {
+        if (ownKeys.has(key)) {
           csvSkipRows.push({ rowNum, title: result.data.title, artist: result.data.original_artist });
+        } else if (globalSongMap[key]) {
+          // Bestaat al in DB, maar nog niet gekoppeld aan deze artiest
+          csvLinkRows.push({ ...result.data, _existingSongId: globalSongMap[key] });
         } else {
           csvValidRows.push(result.data);
         }
@@ -2493,28 +2552,29 @@
     // Summary pills
     const summaryEl = document.getElementById('csv-summary');
     summaryEl.innerHTML =
-      `<span class="csv-summary-pill valid">✓ ${csvValidRows.length} importeerbaar</span>` +
-      (csvSkipRows.length  ? `<span class="csv-summary-pill skipped">↷ ${csvSkipRows.length} duplicaat</span>` : '') +
+      `<span class="csv-summary-pill valid">✓ ${csvValidRows.length} nieuw</span>` +
+      (csvLinkRows.length  ? `<span class="csv-summary-pill link">↷ ${csvLinkRows.length} al bekend, wordt gekoppeld</span>` : '') +
+      (csvSkipRows.length  ? `<span class="csv-summary-pill skipped">↷ ${csvSkipRows.length} al in songbook</span>` : '') +
       (csvErrorRows.length ? `<span class="csv-summary-pill error">✗ ${csvErrorRows.length} ongeldig</span>` : '');
 
-    // Preview tabel (eerste 10 geldige rijen)
+    // Preview tabel (eerste 10 nieuwe rijen; link-rijen worden ook getoond)
     const tableWrap = document.getElementById('csv-preview-table-wrap');
-    if (csvValidRows.length > 0) {
-      const rows = csvValidRows.slice(0, 10);
+    const previewRows = [...csvValidRows, ...csvLinkRows].slice(0, 10);
+    if (previewRows.length > 0) {
       const catLabel = { core: '⭐ Vast', optional: '🎵 Optioneel', archived: '🗃 Archief' };
       tableWrap.innerHTML =
         '<table class="csv-preview-table"><thead><tr>'
         + '<th>#</th><th>Titel</th><th>Artiest</th><th>Cat.</th>'
         + '</tr></thead><tbody>'
-        + rows.map((r, i) =>
+        + previewRows.map((r, i) =>
             `<tr><td style="color:var(--muted);font-family:var(--font-mono);">${i + 1}</td>`
             + `<td title="${r.title}">${r.title}</td>`
             + `<td title="${r.original_artist}">${r.original_artist}</td>`
             + `<td style="white-space:nowrap;">${catLabel[r.song_category] || '🎵'}</td></tr>`
           ).join('')
         + '</tbody></table>'
-        + (csvValidRows.length > 10
-            ? `<div style="font-family:var(--font-retro);font-size:10px;color:var(--muted);padding:6px 10px;">... en nog ${csvValidRows.length - 10} meer</div>`
+        + (previewRows.length < csvValidRows.length + csvLinkRows.length
+            ? `<div style="font-family:var(--font-retro);font-size:10px;color:var(--muted);padding:6px 10px;">... en nog ${csvValidRows.length + csvLinkRows.length - 10} meer</div>`
             : '');
     } else {
       tableWrap.innerHTML = '<div style="padding:12px;font-family:var(--font-retro);font-size:11px;color:var(--muted);">Geen geldige rijen gevonden.</div>';
@@ -2524,7 +2584,7 @@
     const errorList = document.getElementById('csv-error-list');
     const errorItems = [
       ...csvErrorRows.flatMap(e => e.errors.map(msg => `Rij ${e.rowNum}: ${msg}`)),
-      ...csvSkipRows.map(s => `Rij ${s.rowNum}: "${s.title}" — ${s.artist} (duplicaat, overgeslagen)`)
+      ...csvSkipRows.map(s => `Rij ${s.rowNum}: "${s.title}" — ${s.artist} (al in songbook, overgeslagen)`)
     ];
     if (errorItems.length > 0) {
       errorList.style.display = 'block';
@@ -2538,7 +2598,7 @@
     // Bevestigingsknop
     const confirmBtn = document.getElementById('btn-confirm-csv-import');
     const labelEl    = document.getElementById('lbl-confirm-csv');
-    const count      = csvValidRows.length;
+    const count      = csvValidRows.length + csvLinkRows.length;
     if (labelEl) labelEl.textContent = `Importeer ${count} nummer${count !== 1 ? 's' : ''}`;
     confirmBtn.disabled = count === 0;
 
@@ -2546,22 +2606,30 @@
   }
 
   async function confirmCSVImport() {
-    if (!csvValidRows.length) return;
+    if (!csvValidRows.length && !csvLinkRows.length) return;
 
     const btn   = document.getElementById('btn-confirm-csv-import');
     const label = document.getElementById('lbl-confirm-csv');
     btn.disabled = true;
     if (label) label.textContent = 'Importeren...';
 
-    // Batch insert songs
-    const { data: inserted, error } = await db.from('songs')
-      .insert(csvValidRows).select('id');
-    if (error) {
-      showToast('Import mislukt: ' + error.message, 'error');
-      btn.disabled = false;
-      if (label) label.textContent = `Importeer ${csvValidRows.length} nummers`;
-      return;
+    // Stap 1: insert écht nieuwe songs
+    let newIds = [];
+    if (csvValidRows.length > 0) {
+      const { data: inserted, error } = await db.from('songs')
+        .insert(csvValidRows).select('id');
+      if (error) {
+        showToast('Import mislukt: ' + error.message, 'error');
+        btn.disabled = false;
+        if (label) label.textContent = `Importeer ${csvValidRows.length + csvLinkRows.length} nummers`;
+        return;
+      }
+      newIds = inserted.map(s => s.id);
     }
+
+    // Stap 2: IDs van songs die al in DB bestonden (enkel koppelen)
+    const linkIds = csvLinkRows.map(r => r._existingSongId);
+    const allIds  = [...newIds, ...linkIds];
 
     // Bepaal artist_id: currentArtist, of fallback via gig_artists
     let importArtistId = currentArtist?.id || null;
@@ -2571,23 +2639,37 @@
       importArtistId = ga?.[0]?.artist_id || null;
     }
 
-    if (importArtistId) {
+    // Stap 3: artist_songs links aanmaken voor alle IDs
+    if (importArtistId && allIds.length) {
       await db.from('artist_songs').insert(
-        inserted.map(s => ({ artist_id: importArtistId, song_id: s.id }))
+        allIds.map(id => ({ artist_id: importArtistId, song_id: id }))
       );
     }
 
-    // Batch insert gig_songs voor huidige gig
-    if (currentGig && inserted.length) {
+    // Stap 4: gig_songs voor nieuwe songs direct toevoegen
+    if (currentGig && newIds.length) {
       await db.from('gig_songs').insert(
-        inserted.map(s => ({ gig_id: currentGig.id, song_id: s.id, is_active: true, vote_count: 0 }))
+        newIds.map(id => ({ gig_id: currentGig.id, song_id: id, is_active: true, vote_count: 0 }))
       );
+    }
+
+    // Stap 5: gig_songs voor al bestaande songs — alleen als ze er nog niet in zitten
+    if (currentGig && linkIds.length) {
+      const { data: existingGs } = await db.from('gig_songs')
+        .select('song_id').eq('gig_id', currentGig.id).in('song_id', linkIds);
+      const alreadyIn = new Set((existingGs || []).map(gs => gs.song_id));
+      const toAdd = linkIds.filter(id => !alreadyIn.has(id));
+      if (toAdd.length) {
+        await db.from('gig_songs').insert(
+          toAdd.map(id => ({ gig_id: currentGig.id, song_id: id, is_active: true, vote_count: 0 }))
+        );
+      }
     }
 
     const skippedTotal = csvSkipRows.length + csvErrorRows.length;
     const msg = skippedTotal > 0
-      ? `${inserted.length} nummers geïmporteerd, ${skippedTotal} overgeslagen`
-      : `${inserted.length} nummers geïmporteerd ✓`;
+      ? `${allIds.length} nummers gekoppeld, ${skippedTotal} overgeslagen`
+      : `${allIds.length} nummers gekoppeld ✓`;
 
     showToast(msg, 'success');
     closeModal('modal-csv-import');
@@ -2903,7 +2985,10 @@
   async function logout() {
     await db.auth.signOut();
     currentUser = null; currentGig = null; currentArtist = null;
+    allSongs = [];
     playedCountThisSession = 0;
+    const sbList = document.getElementById('artist-songbook-list');
+    if (sbList) sbList.innerHTML = '';
     showView('view-landing');
   }
 
