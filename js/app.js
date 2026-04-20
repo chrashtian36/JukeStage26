@@ -680,8 +680,8 @@
         // Optionele nummers alleen in 'full' modus
         if (cat !== 'core' && gigMode !== 'full') return;
 
-        // Dedupliceert op titel+original_artist
-        const key = (as.songs.title || '').toLowerCase() + '|' + (as.songs.original_artist || '').toLowerCase();
+        // Dedupliceert op titel+genormaliseerde artiest (incl. "The"-matching)
+        const key = (as.songs.title || '').toLowerCase() + '|' + _normArtist(as.songs.original_artist);
         if (!songMap[key]) {
           songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [] };
         } else if (!songMap[key].gigSongId && gs?.id) {
@@ -1601,7 +1601,7 @@
     const seen = new Set();
     allSongs = (songs || []).filter(s => {
       if (!s.songs) return false;
-      const key = (s.songs.title || '').toLowerCase() + '|' + (s.songs.original_artist || '').toLowerCase();
+      const key = (s.songs.title || '').toLowerCase() + '|' + _normArtist(s.songs.original_artist);
       if (seen.has(key)) return false;
       seen.add(key); return true;
     }).map(s => {
@@ -2753,14 +2753,18 @@
   // ════════════════════════════════════════════
   let _settingsSongs = []; // cache voor de instellingen-songlijst
 
+  // Normaliseert artiestnaam voor matching: lowercase + strip leading "The "
+  function _normArtist(name) {
+    return (name || '').trim().toLowerCase().replace(/^the\s+/i, '');
+  }
+
   async function loadSettingsSongList() {
     if (!currentGig) return;
     const listEl = document.getElementById('settings-song-list');
     if (!listEl) return;
 
-    // Haal artiesten voor deze gig op
     const { data: gigArtists } = await db.from('gig_artists')
-      .select('artist_id').eq('gig_id', currentGig.id);
+      .select('artist_id, artists(name)').eq('gig_id', currentGig.id);
     const artistIds = (gigArtists || []).map(ga => ga.artist_id);
 
     if (artistIds.length === 0) {
@@ -2769,22 +2773,41 @@
     }
 
     const { data: songs } = await db.from('artist_songs')
-      .select('songs(id,title,original_artist)').in('artist_id', artistIds);
+      .select('song_id, artist_id, artists(name), songs(id,title,original_artist)')
+      .in('artist_id', artistIds);
 
     const { data: gigSongsDb } = await db.from('gig_songs')
       .select('id, song_id, is_active').eq('gig_id', currentGig.id);
     const gigSongMap = {};
     gigSongsDb?.forEach(gs => { gigSongMap[gs.song_id] = { id: gs.id, active: gs.is_active }; });
 
-    const seen = new Set();
-    _settingsSongs = (songs || [])
-      .filter(s => s.songs && !seen.has(s.songs.id) && s.songs.is_active !== false && seen.add(s.songs.id))
-      .map(s => ({
-        ...s.songs,
-        _gigSongId: gigSongMap[s.songs.id]?.id || null,
-        _gigActive: gigSongMap[s.songs.id] ? gigSongMap[s.songs.id].active : true
-      }))
-      .sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    // Groepeer op genormaliseerde titel+artiest; meerdere artiesten → overlap
+    const groupMap = {};
+    (songs || []).forEach(s => {
+      if (!s.songs || s.songs.is_active === false) return;
+      const key = (s.songs.title || '').trim().toLowerCase() + '|' + _normArtist(s.songs.original_artist);
+      if (!groupMap[key]) {
+        const gs = gigSongMap[s.songs.id];
+        groupMap[key] = {
+          id: s.songs.id,
+          title: s.songs.title,
+          original_artist: s.songs.original_artist,
+          _gigSongId: gs?.id || null,
+          _gigActive: gs ? gs.active : true,
+          artistNames: []
+        };
+      }
+      const aName = s.artists?.name;
+      if (aName && !groupMap[key].artistNames.includes(aName)) {
+        groupMap[key].artistNames.push(aName);
+      }
+    });
+
+    _settingsSongs = Object.values(groupMap).sort((a, b) => {
+      // Overlap-songs bovenaan, dan alfabetisch
+      if (b.artistNames.length !== a.artistNames.length) return b.artistNames.length - a.artistNames.length;
+      return (a.title || '').localeCompare(b.title || '');
+    });
 
     renderSettingsSongList(_settingsSongs);
   }
@@ -2798,11 +2821,15 @@
     }
     listEl.innerHTML = songs.map((song, i) => {
       const on = song._gigActive !== false;
+      const isOverlap = song.artistNames.length > 1;
       const border = i < songs.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
-      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;${border}" id="ssl-${song.id}">
+      const artistLine = isOverlap
+        ? `<span style="color:var(--neon2);font-weight:600;">★ ${song.artistNames.join(' & ')}</span>`
+        : (song.artistNames[0] ? `<span>${song.artistNames[0]}</span>` : '');
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;${border}${isOverlap ? 'background:rgba(255,170,0,0.04);' : ''}" id="ssl-${song.id}">
         <div style="flex:1;min-width:0;">
           <div style="font-family:var(--font-display);font-size:16px;color:${on ? 'var(--text)' : 'var(--muted)'};">${song.title}</div>
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${song.original_artist || ''}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${song.original_artist || ''} ${artistLine ? '· ' + artistLine : ''}</div>
         </div>
         <button class="toggle ${on ? 'on' : ''}" id="sst-${song.id}"
           onclick="toggleSettingsSong('${song._gigSongId}','${song.id}',this)"
