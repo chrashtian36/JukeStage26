@@ -1169,6 +1169,9 @@
       const key = el.getAttribute('data-i18n-ph');
       if (tr[key]) el.placeholder = tr[key];
     });
+    // Wissel arch-afbeelding naar de taalversie
+    const archSrc = lang === 'nl' ? 'jukestage arch.png' : `jukestage arch ${lang.toUpperCase()}.png`;
+    document.querySelectorAll('.hero-arch-img').forEach(img => img.src = archSrc);
     // Update artist role badge text if visible
     const badge = document.getElementById('artist-role-badge');
     if (badge) {
