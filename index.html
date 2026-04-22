@@ -34,43 +34,12 @@
 <!-- ═══════════════════════ VIEW: LANDING ═══════════════════════ -->
 <div class="view active" id="view-landing">
   <div class="login-screen">
-    <div class="login-jukebox">
-      <div class="login-title">JUKESTAGE</div>
-      <div class="login-subtitle" id="lbl-tagline">✦ Live Muziek op het Podium ✦</div>
+    <!-- Jukebox arch hero -->
+    <div class="hero-arch-wrap">
+      <img src="jukestage arch.png" class="hero-arch-img" alt="JukeStage">
     </div>
 
-    <!-- Uitleg voor nieuwe bezoekers -->
-    <div class="landing-intro">
-      <p class="landing-desc" id="lf-desc">De interactieve jukebox voor live optredens. Scan de QR-code aan de bar of het podium, vraag nummers aan en stem mee — de artiest beheert alles realtime.</p>
-      <div class="landing-features">
-        <div class="landing-feature">
-          <div class="lf-icon">🎵</div>
-          <div class="lf-label" id="lf-request">Nummers aanvragen</div>
-        </div>
-        <div class="landing-feature">
-          <div class="lf-icon">👆</div>
-          <div class="lf-label" id="lf-vote">Stemmen op favorieten</div>
-        </div>
-        <div class="landing-feature">
-          <div class="lf-icon">💬</div>
-          <div class="lf-label" id="lf-message">Bericht sturen</div>
-        </div>
-        <div class="landing-feature">
-          <div class="lf-icon">📱</div>
-          <div class="lf-label" id="lf-qr">Via QR-code</div>
-        </div>
-        <div class="landing-feature">
-          <div class="lf-icon">⚡</div>
-          <div class="lf-label" id="lf-realtime">Realtime updates</div>
-        </div>
-        <div class="landing-feature">
-          <div class="lf-icon">⭐</div>
-          <div class="lf-label" id="lf-review">Review achterlaten</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Taal selector (punt 8) -->
+    <!-- Taal selector -->
     <div class="lang-selector">
       <button class="lang-btn active" data-lang="nl">🇳🇱 NL</button>
       <button class="lang-btn" data-lang="en">🇬🇧 EN</button>
@@ -80,7 +49,7 @@
       <button class="lang-btn" data-lang="mg">🇲🇬 MG</button>
     </div>
 
-    <div class="login-card" id="card-choice" style="margin-top:20px;">
+    <div class="login-card" id="card-choice" style="margin-top:16px;">
       <p style="font-size:12px;color:var(--muted);margin-bottom:18px;text-align:center;font-family:var(--font-retro);letter-spacing:1px;" id="lbl-role-choice">BEN JE BEZOEKER OF ARTIEST?</p>
       <button class="btn btn-primary btn-full" onclick="showView('view-voter-landing');loadLiveGigs();" style="margin-bottom:9px;font-size:14px;" id="btn-visitor">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 18V5l12-3v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="15" r="3"/></svg>
@@ -90,6 +59,34 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span id="lbl-artist">Artiest / DJ Inloggen</span>
       </button>
+    </div>
+
+    <!-- Feature uitleg: staat onder de knoppen zodat ze centraler vallen -->
+    <div class="landing-features">
+      <div class="landing-feature">
+        <div class="lf-icon">🎵</div>
+        <div class="lf-label" id="lf-request">Nummers aanvragen</div>
+      </div>
+      <div class="landing-feature">
+        <div class="lf-icon">👆</div>
+        <div class="lf-label" id="lf-vote">Stemmen op favorieten</div>
+      </div>
+      <div class="landing-feature">
+        <div class="lf-icon">💬</div>
+        <div class="lf-label" id="lf-message">Bericht sturen</div>
+      </div>
+      <div class="landing-feature">
+        <div class="lf-icon">📱</div>
+        <div class="lf-label" id="lf-qr">Via QR-code</div>
+      </div>
+      <div class="landing-feature">
+        <div class="lf-icon">⚡</div>
+        <div class="lf-label" id="lf-realtime">Realtime updates</div>
+      </div>
+      <div class="landing-feature">
+        <div class="lf-icon">⭐</div>
+        <div class="lf-label" id="lf-review">Review achterlaten</div>
+      </div>
     </div>
 
     <div class="login-card" id="card-login" style="display:none;">
