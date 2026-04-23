@@ -62,7 +62,7 @@
     }
     const { error } = await db.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin }
     });
     if (error) {
       if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
@@ -222,7 +222,7 @@
     showToast('Code versturen...', '');
     const { error } = await db.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true }
+      options: { shouldCreateUser: true, emailRedirectTo: window.location.origin }
     });
     if (error) {
       if (error.status === 429 || error.message?.toLowerCase().includes('rate limit')) {
