@@ -65,6 +65,13 @@ Deno.serve(async (req) => {
       </div>
     `;
 
+    console.log("[notify-artist-signup] Sending email via Resend", {
+      from: FROM_EMAIL,
+      to: NOTIFY_EMAIL,
+      subject: `Nieuwe JukeStage-artiest: ${name}`,
+      hasApiKey: !!RESEND_API_KEY,
+    });
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -79,16 +86,19 @@ Deno.serve(async (req) => {
       }),
     });
 
+    const resBody = await res.text();
+    console.log("[notify-artist-signup] Resend response:", res.status, resBody);
+
     if (!res.ok) {
-      const errText = await res.text();
-      console.error("Resend error:", res.status, errText);
+      console.error("[notify-artist-signup] Resend error:", res.status, resBody);
       return new Response(
-        JSON.stringify({ error: "Resend request failed", detail: errText }),
+        JSON.stringify({ error: "Resend request failed", status: res.status, detail: resBody }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const resData = await res.json();
+    const resData = JSON.parse(resBody);
+    console.log("[notify-artist-signup] Email sent, id:", resData.id);
     return new Response(
       JSON.stringify({ ok: true, id: resData.id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

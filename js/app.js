@@ -350,9 +350,13 @@
     _enterAsArtist();
 
     // Fire-and-forget notificatie — fout blokkeert signup nooit
+    console.log('[signup] Invoking notify-artist-signup for', artistPendingEmail);
     db.functions.invoke('notify-artist-signup', {
       body: { name, email: artistPendingEmail, tier: 'free', created_at: new Date().toISOString() }
-    }).catch(e => console.warn('Signup notification failed:', e));
+    }).then(({ data, error }) => {
+      if (error) console.error('[signup] notify-artist-signup error:', error);
+      else console.log('[signup] notify-artist-signup response:', data);
+    }).catch(e => console.error('[signup] notify-artist-signup exception:', e));
   }
 
   function _enterAsArtist() {
