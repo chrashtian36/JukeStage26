@@ -255,6 +255,7 @@
           <span class="gig-info-artists" id="voter-gig-artists"></span>
         </div>
         <div id="voter-gig-location" style="display:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+        <div id="voter-gig-status-row" style="display:none;margin-top:6px;"></div>
       </div>
       <!-- Now Playing — onderaan de kaart -->
       <div class="gig-info-np" id="voter-np-card">
@@ -536,8 +537,12 @@
           <button class="toggle on" id="toggle-karaoke" onclick="this.classList.toggle('on')"></button>
         </div>
         <div class="toggle-row">
-          <div><div class="toggle-label" id="lbl-gig-live">Gig is LIVE</div><div class="toggle-sub" id="lbl-gig-live-sub">Zichtbaar voor publiek</div></div>
-          <button class="toggle on" id="toggle-live" onclick="toggleGigLive(this)"></button>
+          <div><div class="toggle-label">Performance is live</div><div class="toggle-sub">Gig is nu aan het spelen — toont "Live nu bezig" voor bezoekers</div></div>
+          <button class="toggle" id="toggle-is-live" onclick="toggleGigIsLive(this)"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Stemmen open</div><div class="toggle-sub">Bezoekers kunnen nummers aanvragen en stemmen</div></div>
+          <button class="toggle" id="toggle-voting-open" onclick="toggleVotingOpen(this)"></button>
         </div>
         <div class="toggle-row">
           <div><div class="toggle-label">Publieke gig</div><div class="toggle-sub">Aan: iedereen kan deelnemen zonder QR-code. Uit: alleen via directe link of QR</div></div>

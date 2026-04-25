@@ -404,7 +404,9 @@
     }
 
     const { data: liveGigs } = await db.from('gigs')
-      .select('*').eq('status', 'live').eq('is_active', true).eq('is_public', true)
+      .select('*')
+      .or('is_live.eq.true,voting_open.eq.true')
+      .eq('is_active', true).eq('is_public', true).neq('status', 'finished')
       .order('gig_date', { ascending: false });
 
     if (!liveGigs || liveGigs.length === 0) {
@@ -499,6 +501,34 @@
     if (nameEl)  nameEl.textContent  = currentGig.name  || currentGig.venue || 'Live vanavond';
     if (venueEl) venueEl.textContent = currentGig.venue && currentGig.name !== currentGig.venue
       ? '📍 ' + currentGig.venue : '';
+
+    // Live-badge in header koppelen aan is_live
+    const liveBadge = document.getElementById('voter-live-badge');
+    if (liveBadge) liveBadge.style.display = currentGig.is_live ? '' : 'none';
+
+    // Status-rij: "Live nu bezig" / "Stemmen open vanaf [datum]" / gepland tijdstip
+    const statusRow = document.getElementById('voter-gig-status-row');
+    if (statusRow) {
+      const parts = [];
+      if (currentGig.is_live) {
+        parts.push('<span class="badge badge-neon" style="font-size:11px;">● Live nu bezig</span>');
+      }
+      if (!currentGig.voting_open) {
+        if (currentGig.gig_date) {
+          const d = new Date(currentGig.gig_date);
+          const formatted = d.toLocaleString('nl-NL', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">Stemmen open vanaf ${formatted}</span>`);
+        } else {
+          parts.push('<span style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">Stemmen nog niet open</span>');
+        }
+      } else if (!currentGig.is_live && currentGig.gig_date) {
+        const d = new Date(currentGig.gig_date);
+        const formatted = d.toLocaleString('nl-NL', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+        parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">🗓 ${formatted}</span>`);
+      }
+      statusRow.innerHTML = parts.join('');
+      statusRow.style.display = parts.length ? '' : 'none';
+    }
 
     // Locatie tonen — altijd als voter in de gig zit (private = QR-only, public = iedereen)
     const locEl = document.getElementById('voter-gig-location');
@@ -2045,12 +2075,24 @@
     loadArtistHistory();
   }
 
-  async function toggleGigLive(btn) {
+  async function toggleGigIsLive(btn) {
+    if (!currentGig) return;
     btn.classList.toggle('on');
-    const isLive = btn.classList.contains('on');
-    await db.from('gigs').update({ status: isLive ? 'live' : 'upcoming' }).eq('id', currentGig.id);
-    document.getElementById('artist-gig-status').style.display = isLive ? 'inline-flex' : 'none';
-    showToast(isLive ? 'Gig is nu LIVE! 🎸' : 'Gig offline gezet', isLive ? 'success' : '');
+    const val = btn.classList.contains('on');
+    await db.from('gigs').update({ is_live: val }).eq('id', currentGig.id);
+    currentGig.is_live = val;
+    const badge = document.getElementById('artist-gig-status');
+    if (badge) badge.style.display = val ? 'inline-flex' : 'none';
+    showToast(val ? 'Gig is nu LIVE! 🎸' : 'Live-status uitgeschakeld', val ? 'success' : '');
+  }
+
+  async function toggleVotingOpen(btn) {
+    if (!currentGig) return;
+    btn.classList.toggle('on');
+    const val = btn.classList.contains('on');
+    await db.from('gigs').update({ voting_open: val }).eq('id', currentGig.id);
+    currentGig.voting_open = val;
+    showToast(val ? 'Stemmen geopend ✓' : 'Stemmen gesloten', val ? 'success' : '');
   }
 
   // ════════════════════════════════════════════
@@ -2060,7 +2102,7 @@
     if (!currentGig) return;
     if (!confirm(t('confirm-close-gig') || 'Wil je de gig echt afsluiten?')) return;
 
-    await db.from('gigs').update({ status: 'finished', is_active: false }).eq('id', currentGig.id);
+    await db.from('gigs').update({ status: 'finished', is_active: false, is_live: false, voting_open: false }).eq('id', currentGig.id);
     await db.from('requests')
       .update({ status: 'rejected' })
       .eq('gig_id', currentGig.id)
@@ -2277,7 +2319,8 @@
     };
     setToggle('toggle-requests', currentGig.allow_requests);
     setToggle('toggle-votes', currentGig.allow_votes);
-    setToggle('toggle-live', currentGig.status === 'live');
+    setToggle('toggle-is-live', currentGig.is_live);
+    setToggle('toggle-voting-open', currentGig.voting_open);
     setToggle('toggle-public', currentGig.is_public);
 
     // Locatie velden laden
