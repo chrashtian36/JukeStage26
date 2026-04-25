@@ -500,6 +500,24 @@
     if (venueEl) venueEl.textContent = currentGig.venue && currentGig.name !== currentGig.venue
       ? '📍 ' + currentGig.venue : '';
 
+    // Locatie tonen — altijd als voter in de gig zit (private = QR-only, public = iedereen)
+    const locEl = document.getElementById('voter-gig-location');
+    if (locEl) {
+      const locType = currentGig.location_type || 'physical';
+      const parts = [];
+      if ((locType === 'physical' || locType === 'hybrid') && currentGig.location_address) {
+        const addr = encodeURIComponent(currentGig.location_address);
+        const mapsUrl = `https://maps.google.com/?q=${addr}`;
+        parts.push(`<a href="${mapsUrl}" target="_blank" rel="noopener" class="badge badge-chrome" style="text-decoration:none;">📍 ${currentGig.location_address}</a>`);
+      }
+      if ((locType === 'online' || locType === 'hybrid') && currentGig.stream_url) {
+        const safeUrl = currentGig.stream_url.startsWith('http') ? currentGig.stream_url : '#';
+        parts.push(`<a href="${safeUrl}" target="_blank" rel="noopener" class="badge badge-neon" style="text-decoration:none;">🎥 Kijk Live</a>`);
+      }
+      locEl.innerHTML = parts.join('');
+      locEl.style.display = parts.length ? 'flex' : 'none';
+    }
+
     // Haal artiesten op voor deze gig
     if (artistsEl) {
       try {
@@ -1188,7 +1206,13 @@
 
     const gigDate = date ? new Date(date).toISOString() : new Date().toISOString();
     const gigVenue = venue || '—';
-    const isPublic = document.getElementById('new-gig-public')?.classList.contains('on') ?? false;
+    const isPublic   = document.getElementById('new-gig-public')?.classList.contains('on') ?? false;
+    const locType    = ['physical','online','hybrid'].find(t => document.getElementById(`new-loc-${t}`)?.classList.contains('active')) || 'physical';
+    const locAddress = document.getElementById('new-location-address')?.value.trim() || null;
+    const locLat     = parseFloat(document.getElementById('new-location-lat')?.value) || null;
+    const locLng     = parseFloat(document.getElementById('new-location-lng')?.value) || null;
+    const streamUrl  = document.getElementById('new-stream-url')?.value.trim() || null;
+
     const { data: gig, error } = await db.from('gigs').insert({
       name,
       venue: gigVenue,
@@ -1200,6 +1224,11 @@
       allow_votes: true,
       allow_karaoke: true,
       is_public: isPublic,
+      location_type: locType,
+      location_address: locAddress,
+      location_lat: locLat,
+      location_lng: locLng,
+      stream_url: streamUrl,
       created_at: new Date().toISOString()
     }).select().single();
 
@@ -1931,14 +1960,24 @@
     const venue   = document.getElementById('settings-gig-venue').value.trim();
     const allowReq  = document.getElementById('toggle-requests').classList.contains('on');
     const allowVote = document.getElementById('toggle-votes').classList.contains('on');
-    const isPublic  = document.getElementById('toggle-public')?.classList.contains('on') ?? false;
+    const isPublic   = document.getElementById('toggle-public')?.classList.contains('on') ?? false;
+    const locType    = ['physical','online','hybrid'].find(t => document.getElementById(`settings-loc-${t}`)?.classList.contains('active')) || 'physical';
+    const locAddress = document.getElementById('settings-location-address')?.value.trim() || null;
+    const locLat     = parseFloat(document.getElementById('settings-location-lat')?.value) || null;
+    const locLng     = parseFloat(document.getElementById('settings-location-lng')?.value) || null;
+    const streamUrl  = document.getElementById('settings-stream-url')?.value.trim() || null;
 
     await db.from('gigs').update({
       name: name || currentGig.name,
       venue: venue || currentGig.venue,
       allow_requests: allowReq,
       allow_votes: allowVote,
-      is_public: isPublic
+      is_public: isPublic,
+      location_type: locType,
+      location_address: locAddress,
+      location_lat: locLat,
+      location_lng: locLng,
+      stream_url: streamUrl,
     }).eq('id', currentGig.id);
     // Update local state
     currentGig.name = name || currentGig.name;
@@ -1946,6 +1985,11 @@
     currentGig.allow_requests = allowReq;
     currentGig.allow_votes = allowVote;
     currentGig.is_public = isPublic;
+    currentGig.location_type = locType;
+    currentGig.location_address = locAddress;
+    currentGig.location_lat = locLat;
+    currentGig.location_lng = locLng;
+    currentGig.stream_url = streamUrl;
 
     // Sync gig_artists: diff-based (alleen toevoegen/verwijderen wat echt veranderd is)
     const uniqueArtists = settingsGigArtists.filter(
@@ -2235,6 +2279,18 @@
     setToggle('toggle-votes', currentGig.allow_votes);
     setToggle('toggle-live', currentGig.status === 'live');
     setToggle('toggle-public', currentGig.is_public);
+
+    // Locatie velden laden
+    const locType = currentGig.location_type || 'physical';
+    setLocationType(locType, 'settings');
+    const addrEl = document.getElementById('settings-location-address');
+    const latEl  = document.getElementById('settings-location-lat');
+    const lngEl  = document.getElementById('settings-location-lng');
+    const urlEl  = document.getElementById('settings-stream-url');
+    if (addrEl) addrEl.value = currentGig.location_address || '';
+    if (latEl)  latEl.value  = currentGig.location_lat  != null ? currentGig.location_lat  : '';
+    if (lngEl)  lngEl.value  = currentGig.location_lng  != null ? currentGig.location_lng  : '';
+    if (urlEl)  urlEl.value  = currentGig.stream_url    || '';
 
     // Status badge
     const statusBadge = document.getElementById('settings-gig-status-badge');
@@ -2930,6 +2986,21 @@
   // Wissel de repertoire-modus van de actieve gig
   // repertoire_mode in de gigs tabel is de enige bron van waarheid —
   // geen gig_songs updates nodig, loadVoterSongs leest de modus direct bij elke refresh
+  function setLocationType(type, prefix) {
+    // prefix is 'settings' or 'new'
+    const types = ['physical', 'online', 'hybrid'];
+    types.forEach(t => {
+      const btn = document.getElementById(`${prefix}-loc-${t}`);
+      if (btn) btn.classList.toggle('active', t === type);
+    });
+    const showPhysical = type === 'physical' || type === 'hybrid';
+    const showOnline   = type === 'online'   || type === 'hybrid';
+    const pf = document.getElementById(`${prefix}-loc-physical-fields`);
+    const of = document.getElementById(`${prefix}-loc-online-fields`);
+    if (pf) pf.style.display = showPhysical ? '' : 'none';
+    if (of) of.style.display = showOnline   ? '' : 'none';
+  }
+
   async function setRepertoireMode(mode) {
     if (!currentGig) return;
     await db.from('gigs').update({ repertoire_mode: mode }).eq('id', currentGig.id);

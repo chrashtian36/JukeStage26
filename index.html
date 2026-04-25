@@ -254,6 +254,7 @@
           <span id="voter-gig-venue"></span>
           <span class="gig-info-artists" id="voter-gig-artists"></span>
         </div>
+        <div id="voter-gig-location" style="display:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
       </div>
       <!-- Now Playing — onderaan de kaart -->
       <div class="gig-info-np" id="voter-np-card">
@@ -561,6 +562,37 @@
           <div id="settings-artists-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
         </div>
         <div style="margin-top:16px;">
+          <label class="input-label">Locatie type</label>
+          <div class="mode-toggle-wrap" style="margin-bottom:10px;">
+            <button class="mode-btn" id="settings-loc-physical" onclick="setLocationType('physical','settings')">📍 Fysiek</button>
+            <button class="mode-btn" id="settings-loc-online"   onclick="setLocationType('online','settings')">🎥 Online</button>
+            <button class="mode-btn" id="settings-loc-hybrid"   onclick="setLocationType('hybrid','settings')">⚡ Hybrid</button>
+          </div>
+          <div id="settings-loc-physical-fields">
+            <div class="input-group" style="margin-bottom:8px;">
+              <label class="input-label" style="font-size:10px;">Adres</label>
+              <input type="text" class="input-field" id="settings-location-address" placeholder="Straat, stad">
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div class="input-group" style="flex:1;margin-bottom:0;">
+                <label class="input-label" style="font-size:10px;">Lat (optioneel)</label>
+                <input type="number" class="input-field" id="settings-location-lat" placeholder="52.3676" step="any">
+              </div>
+              <div class="input-group" style="flex:1;margin-bottom:0;">
+                <label class="input-label" style="font-size:10px;">Lng (optioneel)</label>
+                <input type="number" class="input-field" id="settings-location-lng" placeholder="4.9041" step="any">
+              </div>
+            </div>
+          </div>
+          <div id="settings-loc-online-fields" style="display:none;">
+            <div class="input-group" style="margin-bottom:0;">
+              <label class="input-label" style="font-size:10px;">Stream URL (YouTube, Twitch, …)</label>
+              <input type="url" class="input-field" id="settings-stream-url" placeholder="https://youtube.com/live/...">
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
           <label class="input-label">Repertoire modus</label>
           <div class="mode-toggle-wrap">
             <button class="mode-btn" id="mode-btn-core" onclick="setRepertoireMode('core')">⭐ Alleen vast repertoire</button>
@@ -715,7 +747,38 @@
       <div id="new-gig-artist-results" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
       <div id="new-gig-artists-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
     </div>
-    <div class="toggle-row" style="margin-top:8px;">
+    <div style="margin-top:12px;">
+      <label class="input-label">Locatie type</label>
+      <div class="mode-toggle-wrap" style="margin-bottom:10px;">
+        <button class="mode-btn" id="new-loc-physical" onclick="setLocationType('physical','new')">📍 Fysiek</button>
+        <button class="mode-btn" id="new-loc-online"   onclick="setLocationType('online','new')">🎥 Online</button>
+        <button class="mode-btn" id="new-loc-hybrid"   onclick="setLocationType('hybrid','new')">⚡ Hybrid</button>
+      </div>
+      <div id="new-loc-physical-fields">
+        <div class="input-group" style="margin-bottom:8px;">
+          <label class="input-label" style="font-size:10px;">Adres</label>
+          <input type="text" class="input-field" id="new-location-address" placeholder="Straat, stad">
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div class="input-group" style="flex:1;margin-bottom:0;">
+            <label class="input-label" style="font-size:10px;">Lat (optioneel)</label>
+            <input type="number" class="input-field" id="new-location-lat" placeholder="52.3676" step="any">
+          </div>
+          <div class="input-group" style="flex:1;margin-bottom:0;">
+            <label class="input-label" style="font-size:10px;">Lng (optioneel)</label>
+            <input type="number" class="input-field" id="new-location-lng" placeholder="4.9041" step="any">
+          </div>
+        </div>
+      </div>
+      <div id="new-loc-online-fields" style="display:none;">
+        <div class="input-group" style="margin-bottom:0;">
+          <label class="input-label" style="font-size:10px;">Stream URL (YouTube, Twitch, …)</label>
+          <input type="url" class="input-field" id="new-stream-url" placeholder="https://youtube.com/live/...">
+        </div>
+      </div>
+    </div>
+
+    <div class="toggle-row" style="margin-top:12px;">
       <div><div class="toggle-label">Publieke gig</div><div class="toggle-sub">Uit: alleen via QR/link. Aan: iedereen zonder link</div></div>
       <button class="toggle" id="new-gig-public" onclick="this.classList.toggle('on')"></button>
     </div>
