@@ -524,6 +524,10 @@
           <label class="input-label" id="lbl-locatie">Locatie</label>
           <input type="text" class="input-field" id="settings-gig-venue" data-i18n-ph="ph-gig-venue" placeholder="Café, Zaal, etc.">
         </div>
+        <div class="input-group">
+          <label class="input-label" id="lbl-gig-datum">Datum & tijd</label>
+          <input type="datetime-local" class="input-field" id="settings-gig-date">
+        </div>
         <div class="toggle-row">
           <div><div class="toggle-label" id="lbl-allow-requests">Aanvragen toestaan</div><div class="toggle-sub" id="lbl-allow-requests-sub">Publiek kan nummers aanvragen</div></div>
           <button class="toggle on" id="toggle-requests" onclick="this.classList.toggle('on')"></button>
@@ -741,8 +745,8 @@
       <input type="text" class="input-field" id="new-gig-venue" data-i18n-ph="ph-new-gig-venue" placeholder="Café, Zaal, etc.">
     </div>
     <div class="input-group">
-      <label class="input-label" id="lbl-new-gig-datum">Datum</label>
-      <input type="date" class="input-field" id="new-gig-date">
+      <label class="input-label" id="lbl-new-gig-datum">Datum & tijd</label>
+      <input type="datetime-local" class="input-field" id="new-gig-date">
     </div>
     <div class="input-group">
       <label class="input-label" id="lbl-gig-artists">Artiesten</label>

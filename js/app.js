@@ -1218,7 +1218,8 @@
   function openNewGigModal() {
     document.getElementById('new-gig-name').value = '';
     document.getElementById('new-gig-venue').value = '';
-    document.getElementById('new-gig-date').value = new Date().toISOString().split('T')[0];
+    const _now = new Date(); const _local = new Date(_now.getTime() - _now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    document.getElementById('new-gig-date').value = _local;
     document.getElementById('new-gig-artist-search').value = '';
     document.getElementById('new-gig-artist-results').style.display = 'none';
     newGigArtists = currentArtist ? [{ id: currentArtist.id, name: currentArtist.name }] : [];
@@ -1990,6 +1991,8 @@
     if (!currentGig) return;
     const name    = document.getElementById('settings-gig-name').value.trim();
     const venue   = document.getElementById('settings-gig-venue').value.trim();
+    const gigDateVal = document.getElementById('settings-gig-date').value;
+    const gigDate = gigDateVal ? new Date(gigDateVal).toISOString() : currentGig.gig_date;
     const allowReq  = document.getElementById('toggle-requests').classList.contains('on');
     const allowVote = document.getElementById('toggle-votes').classList.contains('on');
     const isPublic   = document.getElementById('toggle-public')?.classList.contains('on') ?? false;
@@ -2002,6 +2005,7 @@
     await db.from('gigs').update({
       name: name || currentGig.name,
       venue: venue || currentGig.venue,
+      gig_date: gigDate,
       allow_requests: allowReq,
       allow_votes: allowVote,
       is_public: isPublic,
@@ -2014,6 +2018,7 @@
     // Update local state
     currentGig.name = name || currentGig.name;
     currentGig.venue = venue || currentGig.venue;
+    currentGig.gig_date = gigDate;
     currentGig.allow_requests = allowReq;
     currentGig.allow_votes = allowVote;
     currentGig.is_public = isPublic;
@@ -2301,6 +2306,13 @@
 
     document.getElementById('settings-gig-name').value  = currentGig.name || '';
     document.getElementById('settings-gig-venue').value = currentGig.venue || '';
+    if (currentGig.gig_date) {
+      const d = new Date(currentGig.gig_date);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('settings-gig-date').value = local;
+    } else {
+      document.getElementById('settings-gig-date').value = '';
+    }
 
     // Load current artists for this gig
     const { data: gigArtistsData } = await db.from('gig_artists')
