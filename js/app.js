@@ -509,21 +509,23 @@
     // Status-rij: "Live nu bezig" / "Stemmen open vanaf [datum]" / gepland tijdstip
     const statusRow = document.getElementById('voter-gig-status-row');
     if (statusRow) {
+      const localeMap = { nl:'nl-NL', en:'en-GB', fr:'fr-FR', de:'de-DE', es:'es-ES', mg:'fr-FR' };
+      const dateLocale = localeMap[currentLang] || 'nl-NL';
       const parts = [];
       if (currentGig.is_live) {
-        parts.push('<span class="badge badge-neon" style="font-size:11px;">● Live nu bezig</span>');
+        parts.push(`<span class="badge badge-neon" style="font-size:11px;">${t('gig-status-live')}</span>`);
       }
       if (!currentGig.voting_open) {
         if (currentGig.gig_date) {
           const d = new Date(currentGig.gig_date);
-          const formatted = d.toLocaleString('nl-NL', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
-          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">Stemmen open vanaf ${formatted}</span>`);
+          const formatted = d.toLocaleString(dateLocale, { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">${t('gig-status-voting-opens')} ${formatted}</span>`);
         } else {
-          parts.push('<span style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">Stemmen nog niet open</span>');
+          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">${t('gig-status-voting-closed')}</span>`);
         }
       } else if (!currentGig.is_live && currentGig.gig_date) {
         const d = new Date(currentGig.gig_date);
-        const formatted = d.toLocaleString('nl-NL', { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+        const formatted = d.toLocaleString(dateLocale, { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
         parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">🗓 ${formatted}</span>`);
       }
       statusRow.innerHTML = parts.join('');

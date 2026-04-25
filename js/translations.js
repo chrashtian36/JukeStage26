@@ -191,6 +191,9 @@
       'lf-qr': 'Via QR-code',
       'lf-realtime': 'Realtime updates',
       'lf-review': 'Review achterlaten',
+      'gig-status-live': '● Live nu bezig',
+      'gig-status-voting-opens': 'Stemmen open vanaf',
+      'gig-status-voting-closed': 'Stemmen nog niet open',
     },
     en: {
       'lbl-role-choice': 'ARE YOU A VISITOR OR ARTIST?',
@@ -381,6 +384,9 @@
       'lf-qr': 'Via QR code',
       'lf-realtime': 'Live updates',
       'lf-review': 'Leave a review',
+      'gig-status-live': '● Live now',
+      'gig-status-voting-opens': 'Voting opens',
+      'gig-status-voting-closed': 'Voting not open yet',
     },
     fr: {
       'lbl-role-choice': 'ÊTES-VOUS VISITEUR OU ARTISTE?',
@@ -571,6 +577,9 @@
       'lf-qr': 'Via QR code',
       'lf-realtime': 'Mises à jour en direct',
       'lf-review': 'Laisser un avis',
+      'gig-status-live': '● En direct maintenant',
+      'gig-status-voting-opens': 'Votes ouverts à partir de',
+      'gig-status-voting-closed': 'Votes pas encore ouverts',
     },
     de: {
       'lbl-role-choice': 'BIST DU BESUCHER ODER KÜNSTLER?',
@@ -761,6 +770,9 @@
       'lf-qr': 'Per QR-Code',
       'lf-realtime': 'Live-Updates',
       'lf-review': 'Bewertung hinterlassen',
+      'gig-status-live': '● Jetzt live',
+      'gig-status-voting-opens': 'Abstimmung ab',
+      'gig-status-voting-closed': 'Abstimmung noch nicht geöffnet',
     },
     es: {
       'lbl-role-choice': '¿ERES VISITANTE O ARTISTA?',
@@ -951,6 +963,9 @@
       'lf-qr': 'Via código QR',
       'lf-realtime': 'Actualizaciones en vivo',
       'lf-review': 'Dejar reseña',
+      'gig-status-live': '● En directo ahora',
+      'gig-status-voting-opens': 'Votación abre el',
+      'gig-status-voting-closed': 'Votación aún no abierta',
     },
     mg: {
       'lbl-role-choice': 'MITSIDIKA SA MPANAO FEON-KIRA?',
@@ -1141,6 +1156,9 @@
       'lf-qr': 'Amin\'ny QR-code',
       'lf-realtime': 'Vaovao avy hatrany',
       'lf-review': 'Mandao hevitra',
+      'gig-status-live': '● Velona ankehitriny',
+      'gig-status-voting-opens': 'Fifidianana misokatra ny',
+      'gig-status-voting-closed': 'Tsy misokatra ny fifidianana',
     }
   };
 
