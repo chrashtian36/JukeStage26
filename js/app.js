@@ -650,6 +650,7 @@
     const { data: gigArtists } = await db.from('gig_artists')
       .select('artist_id, artists(name)').eq('gig_id', currentGig.id);
     const artistIds = gigArtists?.map(ga => ga.artist_id) || [];
+    const gigIsMultiArtist = artistIds.length > 1;
 
     // Haal gig_songs op voor gigSongId mapping (voor vote-koppeling)
     const { data: gigSongsDb } = await db.from('gig_songs')
@@ -712,24 +713,27 @@
       ? allGigSongs.filter(item => item.songs?.title?.toLowerCase().includes(query.toLowerCase()) || item.songs?.original_artist?.toLowerCase().includes(query.toLowerCase()))
       : allGigSongs;
 
-    // Sorteer: nummers die door meerdere artiesten gespeeld worden bovenaan, daarna alfabetisch
+    // Multi-artist gig: gedeelde songs bovenaan, daarna alfabetisch
     filtered.sort((a, b) => {
-      const aMulti = a.artistNames.length > 1 ? 0 : 1;
-      const bMulti = b.artistNames.length > 1 ? 0 : 1;
-      if (aMulti !== bMulti) return aMulti - bMulti;
+      if (gigIsMultiArtist) {
+        const aShared = a.artistNames.length > 1 ? 0 : 1;
+        const bShared = b.artistNames.length > 1 ? 0 : 1;
+        if (aShared !== bShared) return aShared - bShared;
+      }
       return (a.songs?.title || '').localeCompare(b.songs?.title || '');
     });
 
     list.innerHTML = filtered.map(item => {
-      const isMultiArtist = item.artistNames.length > 1;
-      const artistLine = isMultiArtist
-        ? '🎸 ' + item.artistNames.join(' & ')
-        : (item.artistNames[0] ? '🎸 ' + item.artistNames[0] : '');
-      return `<div class="song-card${isMultiArtist ? ' multi-artist' : ''}" data-song-id="${item.song_id}" data-gig-song-id="${item.gigSongId || ''}" data-title="${(item.songs?.title||'').replace(/"/g,'&quot;')}" data-artist="${(item.songs?.original_artist||'').replace(/"/g,'&quot;')}" onclick="openRequestFromCard(this)">`
+      const isSongShared = gigIsMultiArtist && item.artistNames.length > 1;
+      // Artiestnaam alleen tonen bij multi-artist gig
+      const performerLabel = gigIsMultiArtist
+        ? (isSongShared ? item.artistNames.join(' & ') : (item.artistNames[0] || ''))
+        : '';
+      return `<div class="song-card${isSongShared ? ' multi-artist' : ''}" data-song-id="${item.song_id}" data-gig-song-id="${item.gigSongId || ''}" data-title="${(item.songs?.title||'').replace(/"/g,'&quot;')}" data-artist="${(item.songs?.original_artist||'').replace(/"/g,'&quot;')}" onclick="openRequestFromCard(this)">`
         + '<div style="display:flex;align-items:center;justify-content:space-between;">'
         + '<div>'
-        + '<div class="song-card-title">' + (item.songs?.title || 'Onbekend') + (isMultiArtist ? ' <span class="multi-artist-badge">★ Meerdere artiesten</span>' : '') + '</div>'
-        + '<div class="song-card-artist">' + (item.songs?.original_artist || '') + (artistLine ? ' · ' + artistLine : '') + '</div>'
+        + '<div class="song-card-title">' + (item.songs?.title || 'Onbekend') + (isSongShared ? ' <span class="multi-artist-badge">★</span>' : '') + '</div>'
+        + '<div class="song-card-artist">' + (item.songs?.original_artist || '') + (performerLabel ? ' · <span style="color:var(--neon2);">' + performerLabel + '</span>' : '') + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:7px;">'
         + (item.songs?.is_karaoke_available && showKaraoke ? '<span class="badge badge-karaoke">🎤 Lyrics</span>' : '')
@@ -2762,6 +2766,7 @@
   // INSTELLINGEN — NUMMERS PER GIG
   // ════════════════════════════════════════════
   let _settingsSongs = []; // cache voor de instellingen-songlijst
+  let _settingsGigIsMultiArtist = false;
 
   // Normaliseert artiestnaam voor matching: lowercase + strip leading "The "
   function _normArtist(name) {
@@ -2776,6 +2781,7 @@
     const { data: gigArtists } = await db.from('gig_artists')
       .select('artist_id, artists(name)').eq('gig_id', currentGig.id);
     const artistIds = (gigArtists || []).map(ga => ga.artist_id);
+    _settingsGigIsMultiArtist = artistIds.length > 1;
 
     if (artistIds.length === 0) {
       listEl.innerHTML = '<div style="padding:14px;color:var(--muted);font-size:12px;font-family:var(--font-retro);text-align:center;">Koppel eerst artiesten aan deze gig</div>';
@@ -2831,15 +2837,18 @@
     }
     listEl.innerHTML = songs.map((song, i) => {
       const on = song._gigActive !== false;
-      const isOverlap = song.artistNames.length > 1;
+      const isSongShared = _settingsGigIsMultiArtist && song.artistNames.length > 1;
       const border = i < songs.length - 1 ? 'border-bottom:1px solid var(--border);' : '';
-      const artistLine = isOverlap
-        ? `<span style="color:var(--neon2);font-weight:600;">★ ${song.artistNames.join(' & ')}</span>`
-        : (song.artistNames[0] ? `<span>${song.artistNames[0]}</span>` : '');
-      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;${border}${isOverlap ? 'background:rgba(255,170,0,0.04);' : ''}" id="ssl-${song.id}">
+      // Artiestnaam alleen tonen bij multi-artist gig
+      const artistLine = _settingsGigIsMultiArtist
+        ? (isSongShared
+          ? `<span style="color:var(--neon2);font-weight:600;">★ ${song.artistNames.join(' & ')}</span>`
+          : (song.artistNames[0] ? `<span style="color:var(--chrome);">${song.artistNames[0]}</span>` : ''))
+        : '';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;${border}${isSongShared ? 'background:rgba(255,170,0,0.04);' : ''}" id="ssl-${song.id}">
         <div style="flex:1;min-width:0;">
           <div style="font-family:var(--font-display);font-size:16px;color:${on ? 'var(--text)' : 'var(--muted)'};">${song.title}</div>
-          <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${song.original_artist || ''} ${artistLine ? '· ' + artistLine : ''}</div>
+          <div style="font-size:11px;color:var(--muted);font-family:var(--font-retro);">${song.original_artist || ''}${artistLine ? ' · ' + artistLine : ''}</div>
         </div>
         <button class="toggle ${on ? 'on' : ''}" id="sst-${song.id}"
           onclick="toggleSettingsSong('${song._gigSongId}','${song.id}',this)"
