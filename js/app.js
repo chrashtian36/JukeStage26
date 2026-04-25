@@ -404,7 +404,7 @@
     }
 
     const { data: liveGigs } = await db.from('gigs')
-      .select('*').eq('status', 'live').eq('is_active', true)
+      .select('*').eq('status', 'live').eq('is_active', true).eq('is_public', true)
       .order('gig_date', { ascending: false });
 
     if (!liveGigs || liveGigs.length === 0) {
@@ -1184,6 +1184,7 @@
 
     const gigDate = date ? new Date(date).toISOString() : new Date().toISOString();
     const gigVenue = venue || '—';
+    const isPublic = document.getElementById('new-gig-public')?.classList.contains('on') ?? false;
     const { data: gig, error } = await db.from('gigs').insert({
       name,
       venue: gigVenue,
@@ -1194,6 +1195,7 @@
       allow_requests: true,
       allow_votes: true,
       allow_karaoke: true,
+      is_public: isPublic,
       created_at: new Date().toISOString()
     }).select().single();
 
@@ -1925,18 +1927,21 @@
     const venue   = document.getElementById('settings-gig-venue').value.trim();
     const allowReq  = document.getElementById('toggle-requests').classList.contains('on');
     const allowVote = document.getElementById('toggle-votes').classList.contains('on');
+    const isPublic  = document.getElementById('toggle-public')?.classList.contains('on') ?? false;
 
     await db.from('gigs').update({
       name: name || currentGig.name,
       venue: venue || currentGig.venue,
       allow_requests: allowReq,
-      allow_votes: allowVote
+      allow_votes: allowVote,
+      is_public: isPublic
     }).eq('id', currentGig.id);
     // Update local state
     currentGig.name = name || currentGig.name;
     currentGig.venue = venue || currentGig.venue;
     currentGig.allow_requests = allowReq;
     currentGig.allow_votes = allowVote;
+    currentGig.is_public = isPublic;
 
     // Sync gig_artists: diff-based (alleen toevoegen/verwijderen wat echt veranderd is)
     const uniqueArtists = settingsGigArtists.filter(
@@ -2225,6 +2230,7 @@
     setToggle('toggle-requests', currentGig.allow_requests);
     setToggle('toggle-votes', currentGig.allow_votes);
     setToggle('toggle-live', currentGig.status === 'live');
+    setToggle('toggle-public', currentGig.is_public);
 
     // Status badge
     const statusBadge = document.getElementById('settings-gig-status-badge');

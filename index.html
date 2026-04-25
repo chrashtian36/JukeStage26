@@ -535,8 +535,12 @@
           <button class="toggle on" id="toggle-karaoke" onclick="this.classList.toggle('on')"></button>
         </div>
         <div class="toggle-row">
-          <div><div class="toggle-label" id="lbl-gig-live">Gig is LIVE</div><div class="toggle-sub" id="lbl-gig-live-sub">Zichtbaar voor publiek via QR-code</div></div>
+          <div><div class="toggle-label" id="lbl-gig-live">Gig is LIVE</div><div class="toggle-sub" id="lbl-gig-live-sub">Zichtbaar voor publiek</div></div>
           <button class="toggle on" id="toggle-live" onclick="toggleGigLive(this)"></button>
+        </div>
+        <div class="toggle-row">
+          <div><div class="toggle-label">Publieke gig</div><div class="toggle-sub">Aan: iedereen kan deelnemen zonder QR-code. Uit: alleen via directe link of QR</div></div>
+          <button class="toggle" id="toggle-public" onclick="this.classList.toggle('on')"></button>
         </div>
         <!-- QR punt 12: werkende QR code -->
         <div class="qr-box">
@@ -711,7 +715,11 @@
       <div id="new-gig-artist-results" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;max-height:140px;overflow-y:auto;"></div>
       <div id="new-gig-artists-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
     </div>
-    <div style="display:flex;gap:9px;margin-top:4px;">
+    <div class="toggle-row" style="margin-top:8px;">
+      <div><div class="toggle-label">Publieke gig</div><div class="toggle-sub">Uit: alleen via QR/link. Aan: iedereen zonder link</div></div>
+      <button class="toggle" id="new-gig-public" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div style="display:flex;gap:9px;margin-top:12px;">
       <button class="btn btn-secondary" style="flex:1;" onclick="closeModal('modal-new-gig')" id="btn-cancel-new-gig">Annuleren</button>
       <button class="btn btn-primary" style="flex:2;" onclick="createNewGig()" id="btn-create-gig">Gig Aanmaken</button>
     </div>
