@@ -491,17 +491,26 @@
     const venueEl = document.getElementById('voter-selected-gig-venue');
     if (nameEl) nameEl.textContent = gig.name || 'Live vanavond';
     if (venueEl) {
-      const locType = gig.location_type || 'physical';
+      const locType  = gig.location_type || 'physical';
+      const dateObj  = gig.gig_date ? new Date(gig.gig_date) : null;
+      const datePart = dateObj ? dateObj.toLocaleDateString('nl-NL', { weekday:'short', day:'numeric', month:'short' }) : '';
+      const timePart = dateObj ? dateObj.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' }) : '';
+      const dateTime = [datePart, timePart].filter(Boolean).join(' · ');
+      const dateHtml = dateTime ? '<span style="font-size:10px;color:var(--muted);font-family:var(--font-retro);">🗓 ' + dateTime + '</span>' : '';
+
+      let parts = [];
       if (locType === 'online') {
-        venueEl.innerHTML = '<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>'
-          + (gig.stream_url ? ' <a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Bekijk stream →</a>' : '');
+        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>');
+        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Bekijk stream →</a>');
       } else if (locType === 'hybrid') {
-        venueEl.innerHTML = (gig.venue ? '<span style="font-size:11px;">📍 ' + gig.venue + '</span> ' : '')
-          + '<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>'
-          + (gig.stream_url ? ' <a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Stream →</a>' : '');
+        if (gig.venue) parts.push('<span style="font-size:11px;">📍 ' + gig.venue + '</span>');
+        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>');
+        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Stream →</a>');
       } else {
-        venueEl.textContent = (gig.venue && gig.name !== gig.venue) ? '📍 ' + gig.venue : '';
+        if (gig.venue && gig.name !== gig.venue) parts.push('<span style="font-size:11px;">📍 ' + gig.venue + '</span>');
       }
+      if (dateHtml) parts.push(dateHtml);
+      venueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:3px;">' + parts.join('') + '</div>';
     }
     const backBtn = document.getElementById('voter-back-btn');
     if (backBtn) backBtn.style.display = arrivedViaQR ? 'none' : '';
