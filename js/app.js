@@ -420,23 +420,67 @@
     if (liveGigs.length === 1) { selectVoterGig(liveGigs[0]); return; }
 
     // Meerdere gigs — toon keuzelijst
-    let html = '<div style="font-family:var(--font-retro);font-size:10px;letter-spacing:3px;color:var(--neon);text-transform:uppercase;margin-bottom:12px;text-align:center;">Kies jouw gig</div>';
-    liveGigs.forEach(function(g, i) {
-      const datePart = g.gig_date ? new Date(g.gig_date).toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'short'}) : '';
-      const meta = [g.venue, datePart].filter(Boolean).join(' \u00B7 ');
-      html += '<div class="gig-pick-card" id="gigpick_' + i + '">'
-        + '<div><div class="gig-pick-name">' + (g.name || 'Gig') + '</div>'
-        + (meta ? '<div class="gig-pick-meta">' + meta + '</div>' : '')
+    function buildGigPickCard(g, i) {
+      const locType  = g.location_type || 'physical';
+      const dateObj  = g.gig_date ? new Date(g.gig_date) : null;
+      const datePart = dateObj ? dateObj.toLocaleDateString('nl-NL', { weekday:'short', day:'numeric', month:'short' }) : '';
+      const timePart = dateObj ? dateObj.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' }) : '';
+      const dateTime = [datePart, timePart].filter(Boolean).join(' · ');
+
+      let locationBadge = '';
+      if (locType === 'online') {
+        locationBadge = '<span class="gig-pick-badge gig-pick-badge--online">🌐 Online</span>';
+      } else if (locType === 'hybrid') {
+        locationBadge = (g.venue ? '<span class="gig-pick-badge">📍 ' + g.venue + '</span>' : '')
+          + '<span class="gig-pick-badge gig-pick-badge--online">🌐 Online</span>';
+      } else if (g.venue) {
+        locationBadge = '<span class="gig-pick-badge">📍 ' + g.venue + '</span>';
+      }
+
+      const liveDot  = g.is_live ? '<span class="gig-live-dot"></span>' : '';
+      const metaParts = [locationBadge, dateTime].filter(Boolean);
+
+      return '<div class="gig-pick-card" id="gigpick_' + i + '">'
+        + '<div style="min-width:0;">'
+        + '<div class="gig-pick-name">' + liveDot + (g.name || 'Gig') + '</div>'
+        + (metaParts.length ? '<div class="gig-pick-meta" style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;">' + metaParts.join('') + '</div>' : '')
         + '</div>'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="18" height="18" style="color:var(--neon);flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>'
         + '</div>';
-    });
+    }
+
+    function renderGigPickList(gigs) {
+      let html = '';
+      gigs.forEach(function(g, i) { html += buildGigPickCard(g, i); });
+      document.getElementById('gig-pick-list').innerHTML = html;
+      gigs.forEach(function(g, i) {
+        const el = document.getElementById('gigpick_' + i);
+        if (el) el.addEventListener('click', function() { selectVoterGig(g); });
+      });
+    }
+
+    const showSearch = liveGigs.length > 4;
+    let html = '<div style="font-family:var(--font-retro);font-size:10px;letter-spacing:3px;color:var(--neon);text-transform:uppercase;margin-bottom:12px;text-align:center;">Kies jouw gig</div>';
+    if (showSearch) {
+      html += '<div style="position:relative;margin-bottom:12px;">'
+        + '<svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+        + '<input id="gig-pick-search" class="search-input" type="text" placeholder="Zoek op naam of locatie…" autocomplete="off">'
+        + '</div>';
+    }
+    html += '<div id="gig-pick-list"></div>';
     pickArea.innerHTML = html;
-    // Koppel click handlers na render
-    liveGigs.forEach(function(g, i) {
-      const el = document.getElementById('gigpick_' + i);
-      if (el) el.addEventListener('click', function() { selectVoterGig(g); });
-    });
+    renderGigPickList(liveGigs);
+
+    if (showSearch) {
+      document.getElementById('gig-pick-search').addEventListener('input', function() {
+        const q = this.value.toLowerCase();
+        const filtered = liveGigs.filter(function(g) {
+          return (g.name || '').toLowerCase().includes(q)
+            || (g.venue || '').toLowerCase().includes(q);
+        });
+        renderGigPickList(filtered);
+      });
+    }
   }
 
   function selectVoterGig(gig) {
@@ -445,8 +489,20 @@
     document.getElementById('voter-name-area').style.display = 'block';
     const nameEl  = document.getElementById('voter-selected-gig-name');
     const venueEl = document.getElementById('voter-selected-gig-venue');
-    if (nameEl)  nameEl.textContent  = gig.name || 'Live vanavond';
-    if (venueEl) venueEl.textContent = (gig.venue && gig.name !== gig.venue) ? '📍 ' + gig.venue : '';
+    if (nameEl) nameEl.textContent = gig.name || 'Live vanavond';
+    if (venueEl) {
+      const locType = gig.location_type || 'physical';
+      if (locType === 'online') {
+        venueEl.innerHTML = '<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>'
+          + (gig.stream_url ? ' <a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Bekijk stream →</a>' : '');
+      } else if (locType === 'hybrid') {
+        venueEl.innerHTML = (gig.venue ? '<span style="font-size:11px;">📍 ' + gig.venue + '</span> ' : '')
+          + '<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>'
+          + (gig.stream_url ? ' <a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Stream →</a>' : '');
+      } else {
+        venueEl.textContent = (gig.venue && gig.name !== gig.venue) ? '📍 ' + gig.venue : '';
+      }
+    }
     const backBtn = document.getElementById('voter-back-btn');
     if (backBtn) backBtn.style.display = arrivedViaQR ? 'none' : '';
     // Al ingelogd als voter → direct doorgaan
