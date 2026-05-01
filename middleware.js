@@ -30,7 +30,7 @@ export default async function middleware(request) {
     const artistName = artistNames.length ? artistNames.join(' & ') : 'Live muziek';
     const venue = gig.venue || '';
     const date = gig.gig_date
-      ? new Date(gig.gig_date).toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
+      ? new Date(gig.gig_date).toLocaleDateString('nl-NL', { timeZone: 'Europe/Brussels', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })
       : '';
 
     const title = `${artistName} — JukeStage`;
