@@ -33,7 +33,17 @@
       const el = document.getElementById('voter-screen-' + s);
       if (el) el.style.display = s === name ? 'block' : 'none';
     });
-    if (name === 'quick')   document.getElementById('voter-name')?.focus();
+    if (name === 'quick') {
+      const nameEl = document.getElementById('voter-name');
+      if (nameEl) {
+        // Vul opgeslagen naam in als die er is voor deze gig
+        if (!nameEl.value && selectedVoterGig) {
+          const saved = localStorage.getItem('js_vn_' + selectedVoterGig.id);
+          if (saved) nameEl.value = saved;
+        }
+        nameEl.focus();
+      }
+    }
     if (name === 'email')   document.getElementById('voter-email')?.focus();
     if (name === 'code')    { const c = document.getElementById('voter-otp-code'); if(c){c.value='';c.focus();} }
     if (name === 'newname') document.getElementById('voter-account-name')?.focus();
@@ -536,21 +546,21 @@
       const datePart = dateObj ? dateObj.toLocaleDateString('nl-NL', { weekday:'short', day:'numeric', month:'short' }) : '';
       const timePart = dateObj ? dateObj.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' }) : '';
       const dateTime = [datePart, timePart].filter(Boolean).join(' · ');
-      const dateHtml = dateTime ? '<span style="font-size:10px;color:var(--muted);font-family:var(--font-retro);">🗓 ' + dateTime + '</span>' : '';
+      const dateHtml = dateTime ? '<span style="font-size:13px;color:var(--chrome);font-family:var(--font-body);">🗓 ' + dateTime + '</span>' : '';
 
       let parts = [];
       if (locType === 'online') {
-        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>');
-        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Bekijk stream →</a>');
+        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:13px;">🌐 Online</span>');
+        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:13px;font-family:var(--font-body);">Bekijk stream →</a>');
       } else if (locType === 'hybrid') {
-        if (gig.venue) parts.push('<span style="font-size:11px;">📍 ' + gig.venue + '</span>');
-        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:10px;">🌐 Online</span>');
-        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:10px;font-family:var(--font-retro);">Stream →</a>');
+        if (gig.venue) parts.push('<span style="font-size:13px;color:var(--chrome);">📍 ' + gig.venue + '</span>');
+        parts.push('<span class="gig-pick-badge gig-pick-badge--online" style="font-size:13px;">🌐 Online</span>');
+        if (gig.stream_url) parts.push('<a href="' + (gig.stream_url.startsWith('http') ? gig.stream_url : '#') + '" target="_blank" rel="noopener" style="color:var(--neon);font-size:13px;font-family:var(--font-body);">Stream →</a>');
       } else {
-        if (gig.venue && gig.name !== gig.venue) parts.push('<span style="font-size:11px;">📍 ' + gig.venue + '</span>');
+        if (gig.venue && gig.name !== gig.venue) parts.push('<span style="font-size:13px;color:var(--chrome);">📍 ' + gig.venue + '</span>');
       }
       if (dateHtml) parts.push(dateHtml);
-      venueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:3px;">' + parts.join('') + '</div>';
+      venueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:4px;">' + parts.join('') + '</div>';
     }
     const backBtn = document.getElementById('voter-back-btn');
     if (backBtn) backBtn.style.display = arrivedViaQR ? 'none' : '';
@@ -567,19 +577,56 @@
     loadLiveGigs(true);
   }
 
+  function _getQuickAttempts(gigId) {
+    try {
+      const raw = localStorage.getItem('js_qa_' + gigId);
+      if (!raw) return { count: 0, ts: Date.now(), names: [] };
+      const parsed = JSON.parse(raw);
+      // Reset na 30 minuten
+      if (Date.now() - parsed.ts > 30 * 60 * 1000) return { count: 0, ts: Date.now(), names: [] };
+      return parsed;
+    } catch { return { count: 0, ts: Date.now(), names: [] }; }
+  }
+
+  function _saveQuickAttempt(gigId, name) {
+    try {
+      const data = _getQuickAttempts(gigId);
+      if (!data.names.includes(name)) {
+        data.count++;
+        data.names.push(name);
+      }
+      data.ts = data.ts || Date.now();
+      localStorage.setItem('js_qa_' + gigId, JSON.stringify(data));
+    } catch {}
+  }
+
   async function enterAsVoter() {
     const nameEl = document.getElementById('voter-name');
     const name   = nameEl ? nameEl.value.trim() : '';
-    if (!name) {
+    if (name.length < 2) {
       nameEl.focus();
       nameEl.style.borderColor = 'var(--neon3)';
       setTimeout(() => { nameEl.style.borderColor = ''; }, 2000);
-      showToast('Vul je naam in (minimaal 1 karakter)', 'error');
+      showToast('Vul je naam in (minimaal 2 tekens)', 'error');
       return;
     }
     const gig = selectedVoterGig;
     if (!gig) { showToast('Selecteer eerst een gig', 'error'); return; }
     if (gig.status === 'finished') { showToast('Deze gig is al afgesloten', 'error'); return; }
+
+    // Controleer herhaalde pogingen met wisselende namen
+    const attempts = _getQuickAttempts(gig.id);
+    const knownName = localStorage.getItem('js_vn_' + gig.id);
+    const isNewName = name !== knownName;
+    if (isNewName && attempts.count >= 3) {
+      showToast('Te veel pogingen. Maak een account aan voor toegang.', 'error');
+      return;
+    }
+
+    // Sla naam op zodat terugkomst met zelfde naam niet telt als nieuwe poging
+    localStorage.setItem('js_vn_' + gig.id, name);
+    if (isNewName) _saveQuickAttempt(gig.id, name);
+
     currentGig = gig;
 
     const { data: session } = await db.from('voter_sessions')
