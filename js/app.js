@@ -931,13 +931,17 @@
 
     filtered.sort((a, b) => {
       if (songSortMode === 'recent') {
-        // Nieuwste eerst; bij gelijkheid alfabetisch
         const ta = a.addedAt || '';
         const tb = b.addedAt || '';
         if (ta !== tb) return tb.localeCompare(ta);
         return (a.songs?.title || '').localeCompare(b.songs?.title || '');
       }
-      // Alfabetisch (default) — multi-artist: gedeelde songs bovenaan
+      if (songSortMode === 'artist') {
+        const ca = (a.songs?.original_artist || '').localeCompare(b.songs?.original_artist || '');
+        if (ca !== 0) return ca;
+        return (a.songs?.title || '').localeCompare(b.songs?.title || '');
+      }
+      // Alfabetisch op titel (default) — multi-artist: gedeelde songs bovenaan
       if (gigIsMultiArtist) {
         const aShared = a.artistNames.length > 1 ? 0 : 1;
         const bShared = b.artistNames.length > 1 ? 0 : 1;
@@ -3362,7 +3366,7 @@
 
   function setSongSort(mode, btn) {
     songSortMode = mode;
-    document.querySelectorAll('#song-sort-alpha, #song-sort-recent').forEach(b => {
+    document.querySelectorAll('#song-sort-alpha, #song-sort-artist, #song-sort-recent').forEach(b => {
       b.className = 'badge';
       b.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);';
     });
