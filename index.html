@@ -292,6 +292,10 @@
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" class="search-input" placeholder="Zoek een nummer of artiest..." id="voter-search" data-i18n-ph="ph-search-song" oninput="filterSongs(this.value)">
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <button class="badge badge-neon" style="cursor:pointer;padding:5px 12px;font-size:11px;" id="song-sort-alpha" onclick="setSongSort('alpha',this)">A–Z</button>
+        <button class="badge" style="cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);" id="song-sort-recent" onclick="setSongSort('recent',this)">⭐ Nieuw toegevoegd</button>
+      </div>
       <div id="voter-song-list"><div class="empty-state"><p>Laden...</p></div></div>
     </div>
 

@@ -263,6 +263,7 @@
   let artistPendingAuthUser = null;
   let queueSortMode    = 'chrono'; // chrono | popular | custom
   let queueCustomOrder = [];       // song_id array voor eigen volgorde
+  let songSortMode     = 'alpha';  // alpha | recent
 
   async function sendArtistOTP() {
     const email = document.getElementById('login-email').value.trim();
@@ -880,7 +881,7 @@
 
     if (artistIds.length > 0) {
       const { data: artistSongs } = await db.from('artist_songs')
-        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active, song_category)')
+        .select('song_id, artist_id, created_at, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active, song_category)')
         .in('artist_id', artistIds);
 
       (artistSongs || []).forEach(as => {
@@ -901,7 +902,7 @@
         // Dedupliceert op titel+genormaliseerde artiest (incl. "The"-matching)
         const key = (as.songs.title || '').toLowerCase() + '|' + _normArtist(as.songs.original_artist);
         if (!songMap[key]) {
-          songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [] };
+          songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [], addedAt: as.created_at || null };
         } else if (!songMap[key].gigSongId && gs?.id) {
           // Geef voorkeur aan entry met een gig_songs-koppeling
           songMap[key].gigSongId = gs.id;
@@ -926,8 +927,15 @@
       ? allGigSongs.filter(item => item.songs?.title?.toLowerCase().includes(query.toLowerCase()) || item.songs?.original_artist?.toLowerCase().includes(query.toLowerCase()))
       : allGigSongs;
 
-    // Multi-artist gig: gedeelde songs bovenaan, daarna alfabetisch
     filtered.sort((a, b) => {
+      if (songSortMode === 'recent') {
+        // Nieuwste eerst; bij gelijkheid alfabetisch
+        const ta = a.addedAt || '';
+        const tb = b.addedAt || '';
+        if (ta !== tb) return tb.localeCompare(ta);
+        return (a.songs?.title || '').localeCompare(b.songs?.title || '');
+      }
+      // Alfabetisch (default) — multi-artist: gedeelde songs bovenaan
       if (gigIsMultiArtist) {
         const aShared = a.artistNames.length > 1 ? 0 : 1;
         const bShared = b.artistNames.length > 1 ? 0 : 1;
@@ -3349,6 +3357,17 @@
   }
 
   function filterSongs(query) { loadVoterSongs(query); }
+
+  function setSongSort(mode, btn) {
+    songSortMode = mode;
+    document.querySelectorAll('#song-sort-alpha, #song-sort-recent').forEach(b => {
+      b.className = 'badge';
+      b.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);';
+    });
+    btn.className = 'badge badge-neon';
+    btn.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;';
+    loadVoterSongs(document.getElementById('voter-search')?.value || '');
+  }
 
   // ════════════════════════════════════════════
   // STAR RATING
