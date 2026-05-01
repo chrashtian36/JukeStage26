@@ -264,6 +264,7 @@
   let queueSortMode    = 'chrono'; // chrono | popular | custom
   let queueCustomOrder = [];       // song_id array voor eigen volgorde
   let songSortMode     = 'alpha';  // alpha | recent
+  let songFilterCore   = false;    // true = alleen vast repertoire tonen
 
   async function sendArtistOTP() {
     const email = document.getElementById('login-email').value.trim();
@@ -923,9 +924,10 @@
     }
 
     const showKaraoke = currentGig.allow_karaoke !== false;
-    const filtered = query
+    let filtered = query
       ? allGigSongs.filter(item => item.songs?.title?.toLowerCase().includes(query.toLowerCase()) || item.songs?.original_artist?.toLowerCase().includes(query.toLowerCase()))
       : allGigSongs;
+    if (songFilterCore) filtered = filtered.filter(item => item.songs?.song_category === 'core');
 
     filtered.sort((a, b) => {
       if (songSortMode === 'recent') {
@@ -3366,6 +3368,18 @@
     });
     btn.className = 'badge badge-neon';
     btn.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;';
+    loadVoterSongs(document.getElementById('voter-search')?.value || '');
+  }
+
+  function toggleCoreFilter(btn) {
+    songFilterCore = !songFilterCore;
+    if (songFilterCore) {
+      btn.className = 'badge badge-neon';
+      btn.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;';
+    } else {
+      btn.className = 'badge';
+      btn.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);';
+    }
     loadVoterSongs(document.getElementById('voter-search')?.value || '');
   }
 
