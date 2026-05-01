@@ -787,8 +787,19 @@
       return;
     }
 
-    // Punt 1 FIX: vote werkt nu ook voor custom requests (gigSongId kan null zijn)
-    // Punt 16 FIX: toon aanvrager naam
+    // Respecteer handmatige volgorde van de artiest indien aanwezig
+    const savedOrder = currentGig?.queue_order;
+    if (savedOrder?.length) {
+      requests.sort((a, b) => {
+        const ia = savedOrder.indexOf(String(a.song_id));
+        const ib = savedOrder.indexOf(String(b.song_id));
+        if (ia === -1 && ib === -1) return 0;
+        if (ia === -1) return 1;
+        if (ib === -1) return -1;
+        return ia - ib;
+      });
+    }
+
     list.innerHTML = requests.map((req, i) => {
       const voted = votedRequestIds.has(req.id);
       const voteCount = voteMap[req.id] || 0;
@@ -1494,6 +1505,12 @@
         if (btn) btn.classList.toggle('active', m === 'custom');
       });
     }
+    // Sla volgorde op in de database zodat voters en andere apparaten het ook zien
+    if (currentGig) {
+      db.from('gigs').update({ queue_order: queueCustomOrder }).eq('id', currentGig.id).then(() => {
+        currentGig.queue_order = queueCustomOrder;
+      });
+    }
     showToast('Volgorde aangepast ✓', 'success');
   }
 
@@ -1628,6 +1645,18 @@
 
     document.getElementById('stat-queue').textContent = groupOrder.length;
 
+    // Herstel opgeslagen volgorde uit de database als die er is en nog niet geladen
+    const savedOrder = currentGig?.queue_order;
+    if (savedOrder?.length && queueCustomOrder.length === 0) {
+      queueCustomOrder = savedOrder.filter(sid => groups[sid]);
+      if (queueCustomOrder.length > 0 && queueSortMode === 'chrono') {
+        queueSortMode = 'custom';
+        ['chrono','popular','custom'].forEach(m => {
+          const btn = document.getElementById('sort-btn-' + m);
+          if (btn) btn.classList.toggle('active', m === 'custom');
+        });
+      }
+    }
     // Verwijder song_ids uit queueCustomOrder die niet meer in de queue zitten
     queueCustomOrder = queueCustomOrder.filter(sid => groups[sid]);
     // Voeg nieuwe song_ids toe aan het einde van queueCustomOrder
