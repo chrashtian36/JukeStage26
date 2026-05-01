@@ -3244,7 +3244,8 @@
     'songbook': 'abtab-songbook',
     'inbox': 'abtab-inbox',
     'settings': 'abtab-settings',
-    'history': null // geen bottom tab voor history
+    'history': null,
+    'reviews': null
   };
 
   function switchVoterTab(tab, innerEl, btabEl) {
@@ -3266,8 +3267,44 @@
     if (tab === 'myrequests') loadMyRequests();
   }
 
+  async function loadArtistReviews() {
+    const list = document.getElementById('artist-reviews-list');
+    if (!list || !currentGig) return;
+    list.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--muted);font-family:var(--font-retro);font-size:11px;letter-spacing:2px;">LADEN...</div>';
+
+    const { data: reviews } = await db.from('comments')
+      .select('*').eq('gig_id', currentGig.id)
+      .order('created_at', { ascending: false });
+
+    const countEl = document.getElementById('reviews-count');
+    if (countEl) {
+      if (reviews?.length) { countEl.textContent = reviews.length; countEl.style.display = ''; }
+      else countEl.style.display = 'none';
+    }
+
+    if (!reviews || reviews.length === 0) {
+      list.innerHTML = '<div class="empty-state"><p>Nog geen reviews voor deze gig.</p></div>'; return;
+    }
+
+    list.innerHTML = reviews.map(r => {
+      const stars = r.rating ? '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) : '';
+      const pending = !r.is_approved
+        ? '<span style="font-size:10px;background:rgba(255,170,0,0.15);color:var(--neon2);border:1px solid rgba(255,170,0,0.3);border-radius:4px;padding:1px 6px;font-family:var(--font-retro);">in afwachting</span>'
+        : '';
+      return `<div class="comment-card" style="${!r.is_approved ? 'opacity:0.7;' : ''}">
+        <div class="comment-header">
+          <div class="comment-author">${r.author_name}${pending ? ' ' + pending : ''}</div>
+          ${stars ? `<div class="stars">${stars}</div>` : ''}
+        </div>
+        ${r.song_title ? `<div style="font-size:11px;color:var(--neon2);margin-bottom:4px;font-family:var(--font-mono);">🎵 ${r.song_title}</div>` : ''}
+        <div class="comment-text">${r.content}</div>
+        <div class="comment-date">${new Date(r.created_at).toLocaleString('nl-NL')}</div>
+      </div>`;
+    }).join('');
+  }
+
   function switchArtistTab(tab, innerEl, btabEl) {
-    ['queue','requests','songbook','inbox','history','settings'].forEach(t => {
+    ['queue','requests','songbook','inbox','history','settings','reviews'].forEach(t => {
       const el = document.getElementById('atab-' + t);
       if (el) el.style.display = t === tab ? 'block' : 'none';
     });
@@ -3279,6 +3316,7 @@
     const btabId = artistTabMap[tab];
     const btab = btabEl || (btabId ? document.getElementById(btabId) : null);
     if (btab) btab.classList.add('active');
+    if (tab === 'reviews') loadArtistReviews();
   }
 
   function filterSongs(query) { loadVoterSongs(query); }

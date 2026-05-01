@@ -420,6 +420,7 @@
       <div class="itab" onclick="switchArtistTab('requests',this)" id="atab-lbl-requests">Aanvragen</div>
       <div class="itab" onclick="switchArtistTab('songbook',this)" id="atab-lbl-songbook">Songbook</div>
       <div class="itab" onclick="switchArtistTab('inbox',this)">Inbox <span id="inbox-count" style="display:none;background:var(--neon3);color:white;border-radius:100px;padding:1px 5px;font-size:9px;margin-left:2px;"></span></div>
+      <div class="itab" onclick="switchArtistTab('reviews',this)">Reviews <span id="reviews-count" style="display:none;background:var(--neon2);color:#000;border-radius:100px;padding:1px 5px;font-size:9px;margin-left:2px;"></span></div>
       <div class="itab" onclick="switchArtistTab('history',this)" id="atab-lbl-history">Historie</div>
       <div class="itab" onclick="switchArtistTab('settings',this)" id="atab-lbl-settings">Instellingen</div>
     </div>
@@ -485,6 +486,14 @@
         <button class="btn btn-ghost" style="font-size:11px;padding:6px 10px;" onclick="markAllRead()" id="btn-all-read">Alles gelezen</button>
       </div>
       <div id="artist-inbox-list"></div>
+    </div>
+
+    <!-- REVIEWS TAB -->
+    <div id="atab-reviews" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
+        <div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Reviews van bezoekers</div>
+      </div>
+      <div id="artist-reviews-list"></div>
     </div>
 
     <!-- HISTORY TAB -->
