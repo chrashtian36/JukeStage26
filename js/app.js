@@ -881,7 +881,7 @@
 
     if (artistIds.length > 0) {
       const { data: artistSongs } = await db.from('artist_songs')
-        .select('song_id, artist_id, created_at, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active, song_category)')
+        .select('song_id, artist_id, artists(name), songs(id, title, original_artist, is_karaoke_available, is_active, song_category, created_at)')
         .in('artist_id', artistIds);
 
       (artistSongs || []).forEach(as => {
@@ -902,7 +902,7 @@
         // Dedupliceert op titel+genormaliseerde artiest (incl. "The"-matching)
         const key = (as.songs.title || '').toLowerCase() + '|' + _normArtist(as.songs.original_artist);
         if (!songMap[key]) {
-          songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [], addedAt: as.created_at || null };
+          songMap[key] = { song_id: sid, songs: as.songs, gigSongId: gs?.id || null, artistNames: [], addedAt: as.songs?.created_at || null };
         } else if (!songMap[key].gigSongId && gs?.id) {
           // Geef voorkeur aan entry met een gig_songs-koppeling
           songMap[key].gigSongId = gs.id;
