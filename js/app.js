@@ -136,14 +136,54 @@
     loadVoterSongs();
     loadVoterMessages();
     loadVoterComments();
-    subscribeRealtime();
+    subscribeToQueue();
   }
 
-  // OTP verificatie wordt afgehandeld in verifyVoterOTP()
-  // onAuthStateChange alleen nodig voor artist session herstel
   db.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
       currentUser = null; currentGig = null; voterAuthUser = null;
+    }
+    if (event === 'TOKEN_REFRESHED' && session) {
+      // Sessie is vernieuwd — hersubscribe op realtime
+      resubscribeRealtime();
+    }
+  });
+
+  function resubscribeRealtime() {
+    if (!currentGig) return;
+    if (realtimeChannel?.state === 'joined') return;
+    if (currentUser) {
+      subscribeArtistRealtime();
+    } else if (voterSession) {
+      subscribeToQueue();
+    }
+  }
+
+  window.addEventListener('online', () => {
+    resubscribeRealtime();
+    if (currentUser && currentGig) {
+      loadArtistQueue();
+      loadArtistRequests();
+    } else if (voterSession && currentGig) {
+      loadVoterQueue();
+      loadMyRequests();
+    }
+  });
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible') return;
+    // Scherm weer actief — sessie vernieuwen en realtime herstarten
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) return;
+    resubscribeRealtime();
+    // Data verversen zodat gemiste updates direct zichtbaar zijn
+    if (currentUser && currentGig) {
+      loadArtistQueue();
+      loadArtistRequests();
+      loadArtistInbox();
+    } else if (voterSession && currentGig) {
+      loadVoterQueue();
+      loadMyRequests();
     }
   });
 
