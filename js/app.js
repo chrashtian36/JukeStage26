@@ -6,7 +6,14 @@
   // Zorg in Supabase dashboard dat RLS policies actief zijn op alle tabellen!
   const SUPABASE_KEY = 'sb_publishable_lsvdYSTKIo4Buj17rKZOcw_2Rparioi';
   const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false,
+      storageKey: 'js26-auth'
+    }
+  });
 
   // ════════════════════════════════════════════
   // STATE
@@ -152,12 +159,19 @@
   db.auth.onAuthStateChange((event, session) => {
     if (event === 'SIGNED_OUT') {
       currentUser = null; currentGig = null; voterAuthUser = null;
+      showView('view-landing');
     }
     if (event === 'TOKEN_REFRESHED' && session) {
-      // Sessie is vernieuwd — hersubscribe op realtime
       resubscribeRealtime();
     }
   });
+
+  // Ververs sessie elke 10 minuten als de app open staat
+  setInterval(async () => {
+    if (!currentUser && !voterAuthUser) return;
+    const { error } = await db.auth.refreshSession();
+    if (error) console.warn('Sessie verlenging mislukt:', error.message);
+  }, 10 * 60 * 1000);
 
   function resubscribeRealtime() {
     if (!currentGig) return;
