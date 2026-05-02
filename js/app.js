@@ -669,18 +669,16 @@
       if (currentGig.is_live) {
         parts.push(`<span class="badge badge-neon" style="font-size:11px;">${t('gig-status-live')}</span>`);
       }
-      if (!currentGig.voting_open) {
-        if (currentGig.gig_date) {
-          const d = new Date(currentGig.gig_date);
-          const formatted = d.toLocaleString(dateLocale, { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
-          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">${t('gig-status-voting-opens')} ${formatted}</span>`);
-        } else {
-          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">${t('gig-status-voting-closed')}</span>`);
-        }
-      } else if (!currentGig.is_live && currentGig.gig_date) {
+      if (currentGig.gig_date) {
         const d = new Date(currentGig.gig_date);
         const formatted = d.toLocaleString(dateLocale, { weekday:'long', day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
-        parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">🗓 ${formatted}</span>`);
+        if (!currentGig.voting_open) {
+          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">${t('gig-status-voting-opens')} ${formatted}</span>`);
+        } else {
+          parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--chrome);">🗓 ${formatted}</span>`);
+        }
+      } else if (!currentGig.voting_open) {
+        parts.push(`<span style="font-family:var(--font-retro);font-size:11px;color:var(--muted);">${t('gig-status-voting-closed')}</span>`);
       }
       statusRow.innerHTML = parts.join('');
       statusRow.style.display = parts.length ? '' : 'none';
@@ -1651,18 +1649,17 @@
       if (req.status === 'playing') g.isPlaying = true;
     });
 
-    // Embed voterMap on window for popup (per group: use songId as key)
-    window._voterMap = {};
-    groupOrder.forEach(sid => {
-      window._voterMap[sid] = groups[sid].allVoterNames;
-    });
-
     document.getElementById('stat-queue').textContent = groupOrder.length;
+
+    // Normaliseer groupOrder naar strings (DB geeft integers, dataset.id geeft strings)
+    const groupOrderStr = groupOrder.map(String);
+    const groupsStr = {};
+    Object.keys(groups).forEach(k => { groupsStr[String(k)] = groups[k]; });
 
     // Herstel opgeslagen volgorde uit de database als die er is en nog niet geladen
     const savedOrder = currentGig?.queue_order;
     if (savedOrder?.length && queueCustomOrder.length === 0) {
-      queueCustomOrder = savedOrder.filter(sid => groups[sid]);
+      queueCustomOrder = savedOrder.map(String).filter(sid => groupsStr[sid]);
       if (queueCustomOrder.length > 0 && queueSortMode === 'chrono') {
         queueSortMode = 'custom';
         ['chrono','popular','custom'].forEach(m => {
@@ -1671,22 +1668,26 @@
         });
       }
     }
-    // Verwijder song_ids uit queueCustomOrder die niet meer in de queue zitten
-    queueCustomOrder = queueCustomOrder.filter(sid => groups[sid]);
-    // Voeg nieuwe song_ids toe aan het einde van queueCustomOrder
-    groupOrder.forEach(sid => { if (!queueCustomOrder.includes(sid)) queueCustomOrder.push(sid); });
+    // Verwijder song_ids die niet meer in de queue zitten
+    queueCustomOrder = queueCustomOrder.map(String).filter(sid => groupsStr[sid]);
+    // Voeg nieuwe song_ids toe aan het einde (als string)
+    groupOrderStr.forEach(sid => { if (!queueCustomOrder.includes(sid)) queueCustomOrder.push(sid); });
 
-    // Sorteer de groepen op basis van queueSortMode
-    let sortedIds = [...groupOrder];
+    // Sorteer de groepen op basis van queueSortMode (altijd strings)
+    let sortedIds = [...groupOrderStr];
     if (queueSortMode === 'popular') {
-      sortedIds.sort((a, b) => groups[b].totalVotes - groups[a].totalVotes || groups[a].firstCreatedAt.localeCompare(groups[b].firstCreatedAt));
+      sortedIds.sort((a, b) => groupsStr[b].totalVotes - groupsStr[a].totalVotes || groupsStr[a].firstCreatedAt.localeCompare(groupsStr[b].firstCreatedAt));
     } else if (queueSortMode === 'custom') {
-      sortedIds = queueCustomOrder.filter(sid => groups[sid]);
+      sortedIds = queueCustomOrder.filter(sid => groupsStr[sid]);
     }
     // 'chrono' = standaard groupOrder (op volgorde van eerste aanvraag)
 
+    // Sync _voterMap met string keys
+    window._voterMap = {};
+    groupOrderStr.forEach(sid => { window._voterMap[sid] = groupsStr[sid].allVoterNames; });
+
     list.innerHTML = sortedIds.map((sid, i) => {
-      const g = groups[sid];
+      const g = groupsStr[sid];
       const isPlaying = g.isPlaying;
       const multiReq  = g.reqs.length > 1;
       const reqNames  = [...new Set(g.requesters)].join(', ');
@@ -1727,7 +1728,7 @@
 
     // Touch drag instellen na render
     sortedIds.forEach(sid => {
-      const g = groups[sid];
+      const g = groupsStr[sid];
       if (!g.isPlaying) {
         const handle = document.getElementById(`dh-${sid}`);
         const card   = list.querySelector(`[data-id="${sid}"]`);
@@ -3034,8 +3035,8 @@
       }
     }
 
-    if (names.length === 0) {
-      showToast('Geen namen bekend voor deze likes', '');
+    if (!names || names.length === 0) {
+      showToast('Stem(men) ontvangen — naam niet bekend (anoniem gestemd)', '');
       return;
     }
 
