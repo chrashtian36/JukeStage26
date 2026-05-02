@@ -1777,6 +1777,13 @@
     const list = document.getElementById('artist-requests-list');
     const badge = document.getElementById('requests-count-badge');
     if (badge) badge.textContent = `${requests?.length || 0} ${t('lbl-new')}`;
+    const count = requests?.length || 0;
+    ['requests-pending-count', 'requests-pending-count-btab'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = count;
+      el.style.display = count > 0 ? 'inline' : 'none';
+    });
 
     // Vul admin direct-toevoegen dropdown
     const adminSelect = document.getElementById('admin-add-song-select');
@@ -3379,6 +3386,12 @@
     const btab = btabEl || (btabId ? document.getElementById(btabId) : null);
     if (btab) btab.classList.add('active');
     if (tab === 'reviews') loadArtistReviews();
+    if (tab === 'requests') {
+      ['requests-pending-count', 'requests-pending-count-btab'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+    }
   }
 
   function filterSongs(query) { loadVoterSongs(query); }
