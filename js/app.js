@@ -1673,7 +1673,7 @@
     // Herstel opgeslagen volgorde uit de database als die er is en nog niet geladen
     const savedOrder = currentGig?.queue_order;
     if (savedOrder?.length && queueCustomOrder.length === 0) {
-      queueCustomOrder = savedOrder.map(String).filter(sid => groupsStr[sid]);
+      queueCustomOrder = [...new Set(savedOrder.map(String))].filter(sid => groupsStr[sid]);
       if (queueCustomOrder.length > 0 && queueSortMode === 'chrono') {
         queueSortMode = 'custom';
         ['chrono','popular','custom'].forEach(m => {
@@ -1682,10 +1682,14 @@
         });
       }
     }
-    // Verwijder song_ids die niet meer in de queue zitten
-    queueCustomOrder = queueCustomOrder.map(String).filter(sid => groupsStr[sid]);
+    // Verwijder song_ids die niet meer in de queue zitten + dedupliceer
+    queueCustomOrder = [...new Set(queueCustomOrder.map(String))].filter(sid => groupsStr[sid]);
     // Voeg nieuwe song_ids toe aan het einde (als string)
     groupOrderStr.forEach(sid => { if (!queueCustomOrder.includes(sid)) queueCustomOrder.push(sid); });
+    // Schrijf gecleande volgorde terug als DB nog vervuilde data had
+    if (currentGig && savedOrder && JSON.stringify(savedOrder.map(String).sort()) !== JSON.stringify([...queueCustomOrder].sort())) {
+      db.from('gigs').update({ queue_order: queueCustomOrder }).eq('id', currentGig.id).then(() => { currentGig.queue_order = queueCustomOrder; });
+    }
 
     // Sorteer de groepen op basis van queueSortMode (altijd strings)
     let sortedIds = [...groupOrderStr];
