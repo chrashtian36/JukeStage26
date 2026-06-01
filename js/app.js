@@ -218,6 +218,8 @@
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     const t = document.getElementById(id);
     if (t) { t.classList.add('active'); window.scrollTo(0,0); }
+    const intro = document.getElementById('landing-intro');
+    if (intro) intro.style.display = id === 'view-landing' ? '' : 'none';
   }
 
   // ════════════════════════════════════════════
