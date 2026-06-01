@@ -1,3 +1,46 @@
+    .landing-intro {
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+      color: #f0e6d3;
+    }
+
+    .landing-intro h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .landing-intro p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #c9b99a;
+      margin-bottom: 1.2rem;
+    }
+
+    .landing-intro-features {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 1.2rem 0;
+      text-align: left;
+      display: inline-block;
+    }
+
+    .landing-intro-features li {
+      font-size: 0.95rem;
+      padding: 0.3rem 0;
+      color: #d4c4a8;
+    }
+
+    .landing-cta-text {
+      font-size: 0.9rem;
+      color: #a09080;
+      font-style: italic;
+    }
+
     :root {
       --bg: #0d0705;
       --bg2: #150e0a;
