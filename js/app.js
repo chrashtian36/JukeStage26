@@ -1726,7 +1726,7 @@
         <div style="flex:1;min-width:0;">
           <div class="queue-song-title">${g.song?.title || 'Onbekend'}</div>
           <div class="queue-song-meta">${g.song?.original_artist || ''} · ${votes > 0
-            ? `<button type="button" style="background:none;border:none;padding:2px 4px;margin:0;font:inherit;cursor:pointer;color:var(--neon3);text-decoration:underline dotted;" onclick="event.stopPropagation();showVoters(event,'${sid}')">${votes} ${t('lbl-votes')}</button>`
+            ? `<button type="button" draggable="false" style="background:none;border:none;padding:2px 4px;margin:0;font:inherit;cursor:pointer;color:var(--neon3);text-decoration:underline dotted;" onclick="event.stopPropagation();showVoters(event,'${sid}')">${votes} ${t('lbl-votes')}</button>`
             : `<span>${votes} ${t('lbl-votes')}</span>`}</div>
           ${reqNames ? `<div class="requester-badge">${multiReq ? '👥' : '🎵'} ${t('lbl-requested-by')} ${reqNames}${multiReq ? ` <span class="multi-req-badge">${g.reqs.length}×</span>` : ''}</div>` : ''}
           ${g.messages.map(m => `<div class="queue-message-item">${m.name ? `<strong>${m.name}:</strong> ` : ''}"${m.msg}"</div>`).join('')}
