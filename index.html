@@ -487,10 +487,12 @@
       <!-- Admin: nummer direct toevoegen aan wachtrij (punt 14) -->
       <div id="admin-direct-add" style="display:none;background:rgba(255,107,0,0.06);border:1px solid rgba(255,107,0,0.2);border-radius:12px;padding:12px;margin-bottom:14px;">
         <div style="font-family:var(--font-retro);font-size:10px;letter-spacing:2px;color:var(--neon);margin-bottom:8px;text-transform:uppercase;" id="lbl-admin-add">Direct toevoegen aan wachtrij</div>
-        <div style="display:flex;gap:8px;">
-          <select class="input-field" id="admin-add-song-select" style="flex:1;appearance:none;font-size:13px;">
-            <option value="" id="lbl-choose-song">— Kies een nummer —</option>
-          </select>
+        <div style="display:flex;gap:8px;position:relative;">
+          <div style="flex:1;position:relative;">
+            <input type="text" class="input-field" id="admin-add-song-input" style="font-size:13px;width:100%;box-sizing:border-box;" placeholder="Zoek een nummer..." autocomplete="off">
+            <input type="hidden" id="admin-add-song-select" value="">
+            <div id="admin-add-song-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;max-height:200px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:0 0 12px 12px;z-index:50;"></div>
+          </div>
           <button class="btn btn-primary" style="padding:9px 16px;font-size:11px;" onclick="adminAddToQueue()" id="btn-add-to-queue">+ Wachtrij</button>
         </div>
       </div>

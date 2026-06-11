@@ -259,11 +259,15 @@
     // Geen geldige sessie — toon OTP-scherm
     document.getElementById('card-choice').style.display = 'none';
     document.getElementById('card-login').style.display = 'block';
+    const intro = document.getElementById('landing-intro');
+    if (intro) intro.style.display = 'none';
     showArtistScreen('email');
   }
   function showLandingChoice() {
     document.getElementById('card-choice').style.display = 'block';
     document.getElementById('card-login').style.display = 'none';
+    const intro = document.getElementById('landing-intro');
+    if (intro) intro.style.display = '';
   }
   function showArtistScreen(name) {
     ['email','code','newname'].forEach(s => {
@@ -1787,12 +1791,8 @@
       el.style.display = count > 0 ? 'inline' : 'none';
     });
 
-    // Vul admin direct-toevoegen dropdown
-    const adminSelect = document.getElementById('admin-add-song-select');
-    if (adminSelect && allSongs.length > 0) {
-      adminSelect.innerHTML = `<option value="" id="lbl-choose-song">${t('lbl-choose-song')}</option>` +
-        allSongs.map(s => `<option value="${s.id}">${s.title} — ${s.original_artist || ''}</option>`).join('');
-    }
+    // Init admin song search dropdown
+    initAdminSongSearch();
 
     if (!requests || requests.length === 0) {
       list.innerHTML = `<div class="empty-state"><p>${t('empty-requests')}</p></div>`; return;
@@ -1829,6 +1829,47 @@
     }).join('');
   }
 
+  // Admin song search dropdown
+  function initAdminSongSearch() {
+    const input = document.getElementById('admin-add-song-input');
+    const hidden = document.getElementById('admin-add-song-select');
+    const dropdown = document.getElementById('admin-add-song-dropdown');
+    if (!input || !hidden || !dropdown || allSongs.length === 0) return;
+
+    function renderOptions(filter) {
+      const q = (filter || '').toLowerCase();
+      const matches = q
+        ? allSongs.filter(s => (s.title + ' ' + (s.original_artist || '')).toLowerCase().includes(q))
+        : allSongs;
+      if (matches.length === 0) {
+        dropdown.innerHTML = `<div style="padding:10px 12px;font-size:12px;color:var(--muted);font-family:var(--font-retro);">Geen resultaten</div>`;
+      } else {
+        dropdown.innerHTML = matches.slice(0, 50).map(s =>
+          `<div class="admin-song-option" data-id="${s.id}" style="padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);">${s.title} — ${s.original_artist || ''}</div>`
+        ).join('');
+      }
+      dropdown.style.display = 'block';
+    }
+
+    input.addEventListener('focus', () => renderOptions(input.value));
+    input.addEventListener('input', () => {
+      hidden.value = '';
+      renderOptions(input.value);
+    });
+
+    dropdown.addEventListener('click', (e) => {
+      const opt = e.target.closest('.admin-song-option');
+      if (!opt) return;
+      hidden.value = opt.dataset.id;
+      input.value = opt.textContent;
+      dropdown.style.display = 'none';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#admin-direct-add')) dropdown.style.display = 'none';
+    });
+  }
+
   // Punt 14: Admin direct toevoegen aan wachtrij
   async function adminAddToQueue() {
     const songId = document.getElementById('admin-add-song-select').value;
@@ -1849,6 +1890,9 @@
 
     if (error) { showToast('Toevoegen mislukt', 'error'); return; }
     showToast('Nummer direct in wachtrij! 🎵', 'success');
+    const addInput = document.getElementById('admin-add-song-input');
+    if (addInput) addInput.value = '';
+    document.getElementById('admin-add-song-select').value = '';
     loadArtistQueue();
   }
 

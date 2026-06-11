@@ -1105,6 +1105,11 @@
       box-shadow: 0 10px 40px rgba(0,0,0,0.5), var(--glow);
     }
 
+    .admin-song-option:hover {
+      background: rgba(255,107,0,0.12);
+      color: var(--neon);
+    }
+
     /* ══════════════════════════════════════════
        HISTORY VIEW
     ══════════════════════════════════════════ */
