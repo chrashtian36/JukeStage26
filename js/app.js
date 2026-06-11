@@ -1624,39 +1624,19 @@
       return;
     }
 
-    // Haal ALLE requests voor deze gig op (incl. pending) om alle votes te vinden
-    const songIds = [...new Set(requests.map(r => r.song_id))];
-    const { data: allGigReqs } = await db.from('requests')
-      .select('id, song_id')
-      .eq('gig_id', currentGig.id)
-      .in('song_id', songIds);
-    const allReqIds = (allGigReqs || []).map(r => r.id);
+    // Tel votes live vanuit de votes tabel per request, inclusief namen
+    const requestIds = requests.map(r => r.id);
+    const { data: voteCounts } = await db.from('votes')
+      .select('request_id, voter_name')
+      .in('request_id', requestIds);
 
-    // Tel votes op ALLE requests (ook pending) voor deze songs, inclusief namen
-    const { data: voteCounts } = allReqIds.length > 0
-      ? await db.from('votes').select('request_id, voter_name').in('request_id', allReqIds)
-      : { data: [] };
-
-    // Map votes terug naar song_id
-    const reqToSong = {};
-    (allGigReqs || []).forEach(r => { reqToSong[r.id] = r.song_id; });
-
-    const voteMap  = {};  // request_id -> count (voor approved requests)
+    const voteMap  = {};  // request_id -> count
     const voterMap = {};  // request_id -> [namen]
-    const songVoteMap = {};  // song_id -> count (alle votes voor dit nummer)
-    const songVoterMap = {}; // song_id -> [namen]
     (voteCounts || []).forEach(v => {
       if (!v.request_id) return;
       voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
       if (!voterMap[v.request_id]) voterMap[v.request_id] = [];
       if (v.voter_name) voterMap[v.request_id].push(v.voter_name);
-
-      const sid = reqToSong[v.request_id];
-      if (sid) {
-        songVoteMap[sid] = (songVoteMap[sid] || 0) + 1;
-        if (!songVoterMap[sid]) songVoterMap[sid] = [];
-        if (v.voter_name) songVoterMap[sid].push(v.voter_name);
-      }
     });
 
     // Groepeer requests per song_id
@@ -1682,15 +1662,11 @@
       }
       const g = groups[sid];
       g.reqs.push(req);
+      g.totalVotes += voteMap[req.id] || 0;
+      (voterMap[req.id] || []).forEach(n => g.allVoterNames.push(n));
       if (req.voter_sessions?.display_name) g.requesters.push(req.voter_sessions.display_name);
       if (req.message) g.messages.push({ name: req.voter_sessions?.display_name, msg: req.message });
       if (req.status === 'playing') g.isPlaying = true;
-    });
-
-    // Vul votes per song (alle votes incl. van pending requests)
-    Object.values(groups).forEach(g => {
-      g.totalVotes = songVoteMap[g.songId] || 0;
-      g.allVoterNames = songVoterMap[g.songId] || [];
     });
 
     document.getElementById('stat-queue').textContent = groupOrder.length;
