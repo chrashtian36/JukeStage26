@@ -1624,19 +1624,39 @@
       return;
     }
 
-    // Tel votes live vanuit de votes tabel per request, inclusief namen
-    const requestIds = requests.map(r => r.id);
-    const { data: voteCounts } = await db.from('votes')
-      .select('request_id, voter_name')
-      .in('request_id', requestIds);
+    // Haal ALLE requests voor deze gig op (incl. pending) om alle votes te vinden
+    const songIds = [...new Set(requests.map(r => r.song_id))];
+    const { data: allGigReqs } = await db.from('requests')
+      .select('id, song_id')
+      .eq('gig_id', currentGig.id)
+      .in('song_id', songIds);
+    const allReqIds = (allGigReqs || []).map(r => r.id);
 
-    const voteMap  = {};  // request_id -> count
+    // Tel votes op ALLE requests (ook pending) voor deze songs, inclusief namen
+    const { data: voteCounts } = allReqIds.length > 0
+      ? await db.from('votes').select('request_id, voter_name').in('request_id', allReqIds)
+      : { data: [] };
+
+    // Map votes terug naar song_id
+    const reqToSong = {};
+    (allGigReqs || []).forEach(r => { reqToSong[r.id] = r.song_id; });
+
+    const voteMap  = {};  // request_id -> count (voor approved requests)
     const voterMap = {};  // request_id -> [namen]
+    const songVoteMap = {};  // song_id -> count (alle votes voor dit nummer)
+    const songVoterMap = {}; // song_id -> [namen]
     (voteCounts || []).forEach(v => {
       if (!v.request_id) return;
       voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
       if (!voterMap[v.request_id]) voterMap[v.request_id] = [];
       if (v.voter_name) voterMap[v.request_id].push(v.voter_name);
+
+      const sid = reqToSong[v.request_id];
+      if (sid) {
+        songVoteMap[sid] = (songVoteMap[sid] || 0) + 1;
+        if (!songVoterMap[sid]) songVoterMap[sid] = [];
+        if (v.voter_name) songVoterMap[sid].push(v.voter_name);
+      }
     });
 
     // Groepeer requests per song_id
@@ -1662,11 +1682,15 @@
       }
       const g = groups[sid];
       g.reqs.push(req);
-      g.totalVotes += voteMap[req.id] || 0;
-      (voterMap[req.id] || []).forEach(n => g.allVoterNames.push(n));
       if (req.voter_sessions?.display_name) g.requesters.push(req.voter_sessions.display_name);
       if (req.message) g.messages.push({ name: req.voter_sessions?.display_name, msg: req.message });
       if (req.status === 'playing') g.isPlaying = true;
+    });
+
+    // Vul votes per song (alle votes incl. van pending requests)
+    Object.values(groups).forEach(g => {
+      g.totalVotes = songVoteMap[g.songId] || 0;
+      g.allVoterNames = songVoterMap[g.songId] || [];
     });
 
     document.getElementById('stat-queue').textContent = groupOrder.length;
@@ -1797,27 +1821,35 @@
       list.innerHTML = `<div class="empty-state"><p>${t('empty-requests')}</p></div>`; return;
     }
 
-    // Tel votes live vanuit de votes tabel per request
+    // Tel votes live vanuit de votes tabel per request, inclusief namen
     const requestIds = requests.map(r => r.id);
     const { data: voteCounts } = await db.from('votes')
-      .select('request_id')
+      .select('request_id, voter_name')
       .in('request_id', requestIds);
     const voteMap = {};
+    const voterNameMap = {};  // request_id -> [namen]
     (voteCounts || []).forEach(v => {
-      if (v.request_id) voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
+      if (!v.request_id) return;
+      voteMap[v.request_id] = (voteMap[v.request_id] || 0) + 1;
+      if (!voterNameMap[v.request_id]) voterNameMap[v.request_id] = [];
+      if (v.voter_name) voterNameMap[v.request_id].push(v.voter_name);
     });
 
     list.innerHTML = requests.map(req => {
       const name = req.voter_sessions?.display_name || t('lbl-anonymous');
       const time = new Date(req.created_at).toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
       const liveVotes = voteMap[req.id] || req.gig_songs?.vote_count || 0;
+      const voterNames = voterNameMap[req.id] || [];
+      const voterTip = voterNames.length > 0 ? voterNames.join(', ') : '';
       return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:9px;" data-req-id="${req.id}">
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">
           <div>
             <div class="queue-song-title">${req.songs?.title || 'Onbekend'}</div>
             <div class="queue-song-meta">${req.songs?.original_artist || ''} · ${name} · ${time}</div>
           </div>
-          <span class="badge badge-neon">${liveVotes} ❤</span>
+          <span class="badge badge-neon" style="cursor:${liveVotes > 0 ? 'pointer' : 'default'}"
+            onclick="${liveVotes > 0 ? `showRequestVoters(event,'${req.id}')` : ''}"
+            title="${voterTip}">${liveVotes} ❤</span>
         </div>
         ${req.message ? `<div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-style:italic;font-family:var(--font-retro);">"${req.message}"</div>` : ''}
         <div class="action-strip">
@@ -3090,13 +3122,50 @@
   // ════════════════════════════════════════════
   let _popupEl = null;
 
+  async function showRequestVoters(event, requestId) {
+    event.stopPropagation();
+    removeVotersPopup();
+
+    const { data: votes } = await db.from('votes')
+      .select('voter_name').eq('request_id', requestId);
+    const names = (votes || []).map(v => v.voter_name).filter(Boolean);
+
+    if (!names || names.length === 0) {
+      showToast('Stem(men) ontvangen — naam niet bekend (anoniem gestemd)', '');
+      return;
+    }
+
+    const popup = document.createElement('div');
+    popup.className = 'voters-popup';
+    popup.id = 'voters-popup';
+    popup.innerHTML = `
+      <div class="voters-popup-title">❤ ${names.length} stem${names.length !== 1 ? 'men' : ''}</div>
+      ${names.map(n => `<div class="voters-popup-name">${n}</div>`).join('')}
+    `;
+    document.body.appendChild(popup);
+    _popupEl = popup;
+
+    const rect = event.target.getBoundingClientRect();
+    const popupH = names.length * 26 + 40;
+    const top = rect.bottom + 6 + popupH > window.innerHeight
+      ? rect.top - popupH - 6
+      : rect.bottom + 6;
+    const left = Math.min(rect.left, window.innerWidth - 250);
+    popup.style.top  = top  + window.scrollY + 'px';
+    popup.style.left = Math.max(8, left) + 'px';
+
+    setTimeout(() => {
+      document.addEventListener('click', removeVotersPopup, { once: true });
+    }, 10);
+  }
+
   async function showVoters(event, songId) {
     event.stopPropagation();
     removeVotersPopup();
 
-    // Gebruik gecachte map als beschikbaar, anders haal live op uit DB
-    let names = (window._voterMap || {})[songId] || null;
-    if (names === null && currentGig) {
+    // Altijd live ophalen uit DB voor betrouwbare data (votes kunnen op pending requests staan)
+    let names = null;
+    if (currentGig) {
       // Haal alle request_ids op voor dit nummer in deze gig
       const { data: reqs } = await db.from('requests')
         .select('id').eq('gig_id', currentGig.id).eq('song_id', songId);
