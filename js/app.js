@@ -3100,9 +3100,7 @@
     event.stopPropagation();
     removeVotersPopup();
 
-    const anchor = event.target?.getBoundingClientRect
-      ? { rect: event.target.getBoundingClientRect() }
-      : null;
+    const clickedEl = event.target;
 
     const { data: votes } = await db.from('votes')
       .select('voter_name').eq('request_id', requestId);
@@ -3123,12 +3121,14 @@
     document.body.appendChild(popup);
     _popupEl = popup;
 
-    const popupH = names.length * 26 + 40;
-    if (anchor) {
-      const top = anchor.rect.bottom + 6 + popupH > window.innerHeight
-        ? anchor.rect.top - popupH - 6
-        : anchor.rect.bottom + 6;
-      const left = Math.min(anchor.rect.left, window.innerWidth - 250);
+    const popupH = popup.offsetHeight || (names.length * 26 + 40);
+    const freshEl = clickedEl?.isConnected ? clickedEl : document.querySelector(`span[onclick*="showRequestVoters(event,'${requestId}')"]`);
+    if (freshEl) {
+      const rect = freshEl.getBoundingClientRect();
+      const top = rect.bottom + 6 + popupH > window.innerHeight
+        ? rect.top - popupH - 6
+        : rect.bottom + 6;
+      const left = Math.min(rect.left, window.innerWidth - 250);
       popup.style.top  = top + 'px';
       popup.style.left = Math.max(8, left) + 'px';
     } else {
@@ -3144,14 +3144,11 @@
 
   async function showVoters(event, songId) {
     try {
-    console.log('[showVoters] called with songId:', songId, 'currentGig:', currentGig?.id);
     event.stopPropagation();
     removeVotersPopup();
 
-    // Bewaar positie-referentie vóór de await (element kan verdwijnen door re-render)
-    const anchor = event.target?.getBoundingClientRect
-      ? { rect: event.target.getBoundingClientRect() }
-      : null;
+    // Bewaar referentie naar het geklikte element
+    const clickedEl = event.target;
 
     // Altijd live ophalen uit DB voor betrouwbare data
     let names = null;
@@ -3189,13 +3186,15 @@
     document.body.appendChild(popup);
     _popupEl = popup;
 
-    // Positie: popup is position:fixed, dus relatief aan viewport (geen scrollY toevoegen)
-    const popupH = names.length * 26 + 40;
-    if (anchor) {
-      const top = anchor.rect.bottom + 6 + popupH > window.innerHeight
-        ? anchor.rect.top - popupH - 6
-        : anchor.rect.bottom + 6;
-      const left = Math.min(anchor.rect.left, window.innerWidth - 250);
+    // Positie: vers uitlezen, fallback naar midden van scherm
+    const popupH = popup.offsetHeight || (names.length * 26 + 40);
+    const freshEl = clickedEl?.isConnected ? clickedEl : document.querySelector(`button[onclick*="showVoters(event,'${songId}')"]`);
+    if (freshEl) {
+      const rect = freshEl.getBoundingClientRect();
+      const top = rect.bottom + 6 + popupH > window.innerHeight
+        ? rect.top - popupH - 6
+        : rect.bottom + 6;
+      const left = Math.min(rect.left, window.innerWidth - 250);
       popup.style.top  = top + 'px';
       popup.style.left = Math.max(8, left) + 'px';
     } else {
