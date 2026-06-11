@@ -3100,6 +3100,10 @@
     event.stopPropagation();
     removeVotersPopup();
 
+    const anchor = event.target?.getBoundingClientRect
+      ? { rect: event.target.getBoundingClientRect() }
+      : null;
+
     const { data: votes } = await db.from('votes')
       .select('voter_name').eq('request_id', requestId);
     const names = (votes || []).map(v => v.voter_name).filter(Boolean);
@@ -3119,14 +3123,19 @@
     document.body.appendChild(popup);
     _popupEl = popup;
 
-    const rect = event.target.getBoundingClientRect();
     const popupH = names.length * 26 + 40;
-    const top = rect.bottom + 6 + popupH > window.innerHeight
-      ? rect.top - popupH - 6
-      : rect.bottom + 6;
-    const left = Math.min(rect.left, window.innerWidth - 250);
-    popup.style.top  = top  + window.scrollY + 'px';
-    popup.style.left = Math.max(8, left) + 'px';
+    if (anchor) {
+      const top = anchor.rect.bottom + 6 + popupH > window.innerHeight
+        ? anchor.rect.top - popupH - 6
+        : anchor.rect.bottom + 6;
+      const left = Math.min(anchor.rect.left, window.innerWidth - 250);
+      popup.style.top  = top  + window.scrollY + 'px';
+      popup.style.left = Math.max(8, left) + 'px';
+    } else {
+      popup.style.top  = '50%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+    }
 
     setTimeout(() => {
       document.addEventListener('click', removeVotersPopup, { once: true });
@@ -3137,10 +3146,14 @@
     event.stopPropagation();
     removeVotersPopup();
 
-    // Altijd live ophalen uit DB voor betrouwbare data (votes kunnen op pending requests staan)
+    // Bewaar positie-referentie vóór de await (element kan verdwijnen door re-render)
+    const anchor = event.target?.getBoundingClientRect
+      ? { rect: event.target.getBoundingClientRect() }
+      : null;
+
+    // Altijd live ophalen uit DB voor betrouwbare data
     let names = null;
     if (currentGig) {
-      // Haal alle request_ids op voor dit nummer in deze gig
       const { data: reqs } = await db.from('requests')
         .select('id').eq('gig_id', currentGig.id).eq('song_id', songId);
       const reqIds = (reqs || []).map(r => r.id);
@@ -3169,17 +3182,21 @@
     document.body.appendChild(popup);
     _popupEl = popup;
 
-    // Positie: boven of onder de klik
-    const rect = event.target.getBoundingClientRect();
+    // Positie: gebruik opgeslagen rect, fallback naar midden van scherm
     const popupH = names.length * 26 + 40;
-    const top = rect.bottom + 6 + popupH > window.innerHeight
-      ? rect.top - popupH - 6
-      : rect.bottom + 6;
-    const left = Math.min(rect.left, window.innerWidth - 250);
-    popup.style.top  = top  + window.scrollY + 'px';
-    popup.style.left = Math.max(8, left) + 'px';
+    if (anchor) {
+      const top = anchor.rect.bottom + 6 + popupH > window.innerHeight
+        ? anchor.rect.top - popupH - 6
+        : anchor.rect.bottom + 6;
+      const left = Math.min(anchor.rect.left, window.innerWidth - 250);
+      popup.style.top  = top  + window.scrollY + 'px';
+      popup.style.left = Math.max(8, left) + 'px';
+    } else {
+      popup.style.top  = '50%';
+      popup.style.left = '50%';
+      popup.style.transform = 'translate(-50%, -50%)';
+    }
 
-    // Sluit bij klik buiten
     setTimeout(() => {
       document.addEventListener('click', removeVotersPopup, { once: true });
     }, 10);
