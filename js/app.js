@@ -3129,7 +3129,7 @@
         ? anchor.rect.top - popupH - 6
         : anchor.rect.bottom + 6;
       const left = Math.min(anchor.rect.left, window.innerWidth - 250);
-      popup.style.top  = top  + window.scrollY + 'px';
+      popup.style.top  = top + 'px';
       popup.style.left = Math.max(8, left) + 'px';
     } else {
       popup.style.top  = '50%';
@@ -3189,14 +3189,14 @@
     document.body.appendChild(popup);
     _popupEl = popup;
 
-    // Positie: gebruik opgeslagen rect, fallback naar midden van scherm
+    // Positie: popup is position:fixed, dus relatief aan viewport (geen scrollY toevoegen)
     const popupH = names.length * 26 + 40;
     if (anchor) {
       const top = anchor.rect.bottom + 6 + popupH > window.innerHeight
         ? anchor.rect.top - popupH - 6
         : anchor.rect.bottom + 6;
       const left = Math.min(anchor.rect.left, window.innerWidth - 250);
-      popup.style.top  = top  + window.scrollY + 'px';
+      popup.style.top  = top + 'px';
       popup.style.left = Math.max(8, left) + 'px';
     } else {
       popup.style.top  = '50%';
