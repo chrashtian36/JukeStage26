@@ -1791,8 +1791,7 @@
       el.style.display = count > 0 ? 'inline' : 'none';
     });
 
-    // Init admin song search dropdown
-    initAdminSongSearch();
+    // Admin dropdown wordt geïnitialiseerd vanuit loadArtistSongbook (allSongs moet gevuld zijn)
 
     if (!requests || requests.length === 0) {
       list.innerHTML = `<div class="empty-state"><p>${t('empty-requests')}</p></div>`; return;
@@ -1830,11 +1829,15 @@
   }
 
   // Admin song search dropdown
+  let _adminSearchBound = false;
   function initAdminSongSearch() {
     const input = document.getElementById('admin-add-song-input');
     const hidden = document.getElementById('admin-add-song-select');
     const dropdown = document.getElementById('admin-add-song-dropdown');
     if (!input || !hidden || !dropdown || allSongs.length === 0) return;
+
+    if (_adminSearchBound) return;
+    _adminSearchBound = true;
 
     function renderOptions(filter) {
       const q = (filter || '').toLowerCase();
@@ -1959,6 +1962,7 @@
     });
 
     renderSongbook(allSongs);
+    initAdminSongSearch();
   }
 
   function filterSongbook(query) {
