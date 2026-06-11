@@ -3143,6 +3143,8 @@
   }
 
   async function showVoters(event, songId) {
+    try {
+    console.log('[showVoters] called with songId:', songId, 'currentGig:', currentGig?.id);
     event.stopPropagation();
     removeVotersPopup();
 
@@ -3156,16 +3158,21 @@
     if (currentGig) {
       const { data: reqs } = await db.from('requests')
         .select('id').eq('gig_id', currentGig.id).eq('song_id', songId);
+      console.log('[showVoters] reqs:', reqs);
       const reqIds = (reqs || []).map(r => r.id);
       if (reqIds.length > 0) {
         const { data: votes } = await db.from('votes')
           .select('voter_name').in('request_id', reqIds);
+        console.log('[showVoters] votes:', votes);
         names = (votes || []).map(v => v.voter_name).filter(Boolean);
       } else {
         names = [];
       }
+    } else {
+      console.log('[showVoters] geen currentGig!');
     }
 
+    console.log('[showVoters] names:', names);
     if (!names || names.length === 0) {
       showToast('Stem(men) ontvangen — naam niet bekend (anoniem gestemd)', '');
       return;
@@ -3200,6 +3207,7 @@
     setTimeout(() => {
       document.addEventListener('click', removeVotersPopup, { once: true });
     }, 10);
+    } catch(err) { console.error('[showVoters] ERROR:', err); }
   }
 
   function removeVotersPopup() {
