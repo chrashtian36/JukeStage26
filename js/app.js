@@ -3098,115 +3098,38 @@
 
   async function showRequestVoters(event, requestId) {
     event.stopPropagation();
-    removeVotersPopup();
-
-    const clickedEl = event.target;
 
     const { data: votes } = await db.from('votes')
       .select('voter_name').eq('request_id', requestId);
     const names = (votes || []).map(v => v.voter_name).filter(Boolean);
 
     if (!names || names.length === 0) {
-      showToast('Stem(men) ontvangen — naam niet bekend (anoniem gestemd)', '');
-      return;
-    }
-
-    const popup = document.createElement('div');
-    popup.className = 'voters-popup';
-    popup.id = 'voters-popup';
-    popup.innerHTML = `
-      <div class="voters-popup-title">❤ ${names.length} stem${names.length !== 1 ? 'men' : ''}</div>
-      ${names.map(n => `<div class="voters-popup-name">${n}</div>`).join('')}
-    `;
-    document.body.appendChild(popup);
-    _popupEl = popup;
-
-    const popupH = popup.offsetHeight || (names.length * 26 + 40);
-    const freshEl = clickedEl?.isConnected ? clickedEl : document.querySelector(`span[onclick*="showRequestVoters(event,'${requestId}')"]`);
-    if (freshEl) {
-      const rect = freshEl.getBoundingClientRect();
-      const top = rect.bottom + 6 + popupH > window.innerHeight
-        ? rect.top - popupH - 6
-        : rect.bottom + 6;
-      const left = Math.min(rect.left, window.innerWidth - 250);
-      popup.style.top  = top + 'px';
-      popup.style.left = Math.max(8, left) + 'px';
+      showToast('Stem(men) ontvangen — naam niet bekend', '');
     } else {
-      popup.style.top  = '50%';
-      popup.style.left = '50%';
-      popup.style.transform = 'translate(-50%, -50%)';
+      showToast('❤ ' + names.join(', '), 'success');
     }
-
-    setTimeout(() => {
-      document.addEventListener('click', removeVotersPopup, { once: true });
-    }, 10);
   }
 
   async function showVoters(event, songId) {
-    try {
     event.stopPropagation();
-    removeVotersPopup();
 
-    // Bewaar referentie naar het geklikte element
-    const clickedEl = event.target;
-
-    // Altijd live ophalen uit DB voor betrouwbare data
     let names = null;
     if (currentGig) {
       const { data: reqs } = await db.from('requests')
         .select('id').eq('gig_id', currentGig.id).eq('song_id', songId);
-      console.log('[showVoters] reqs:', reqs);
       const reqIds = (reqs || []).map(r => r.id);
       if (reqIds.length > 0) {
         const { data: votes } = await db.from('votes')
           .select('voter_name').in('request_id', reqIds);
-        console.log('[showVoters] votes:', votes);
         names = (votes || []).map(v => v.voter_name).filter(Boolean);
-      } else {
-        names = [];
       }
-    } else {
-      console.log('[showVoters] geen currentGig!');
     }
 
-    console.log('[showVoters] names:', names);
     if (!names || names.length === 0) {
-      showToast('Stem(men) ontvangen — naam niet bekend (anoniem gestemd)', '');
-      return;
-    }
-
-    const popup = document.createElement('div');
-    popup.className = 'voters-popup';
-    popup.id = 'voters-popup';
-    popup.innerHTML = `
-      <div class="voters-popup-title">❤ ${names.length} stem${names.length !== 1 ? 'men' : ''}</div>
-      ${names.map(n => `<div class="voters-popup-name">${n}</div>`).join('')}
-    `;
-
-    document.body.appendChild(popup);
-    _popupEl = popup;
-
-    // Positie: vers uitlezen, fallback naar midden van scherm
-    const popupH = popup.offsetHeight || (names.length * 26 + 40);
-    const freshEl = clickedEl?.isConnected ? clickedEl : document.querySelector(`button[onclick*="showVoters(event,'${songId}')"]`);
-    if (freshEl) {
-      const rect = freshEl.getBoundingClientRect();
-      const top = rect.bottom + 6 + popupH > window.innerHeight
-        ? rect.top - popupH - 6
-        : rect.bottom + 6;
-      const left = Math.min(rect.left, window.innerWidth - 250);
-      popup.style.top  = top + 'px';
-      popup.style.left = Math.max(8, left) + 'px';
+      showToast('Stem(men) ontvangen — naam niet bekend', '');
     } else {
-      popup.style.top  = '50%';
-      popup.style.left = '50%';
-      popup.style.transform = 'translate(-50%, -50%)';
+      showToast('❤ ' + names.join(', '), 'success');
     }
-
-    setTimeout(() => {
-      document.addEventListener('click', removeVotersPopup, { once: true });
-    }, 10);
-    } catch(err) { console.error('[showVoters] ERROR:', err); }
   }
 
   function removeVotersPopup() {
