@@ -3323,6 +3323,30 @@
     if (of) of.style.display = showOnline   ? '' : 'none';
   }
 
+  async function geocodeAddress(prefix) {
+    prefix = prefix || 'settings';
+    const addr = document.getElementById(prefix + '-location-address')?.value.trim();
+    if (!addr) { showToast('Vul eerst een adres in', 'error'); return; }
+    const btn = document.getElementById(prefix === 'settings' ? 'btn-geocode' : 'btn-geocode-new');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+    try {
+      const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(addr), {
+        headers: { 'Accept-Language': 'nl' }
+      });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        document.getElementById(prefix + '-location-lat').value = parseFloat(data[0].lat).toFixed(6);
+        document.getElementById(prefix + '-location-lng').value = parseFloat(data[0].lon).toFixed(6);
+        showToast('📍 ' + data[0].display_name.split(',').slice(0, 3).join(','), 'success');
+      } else {
+        showToast('Adres niet gevonden — probeer specifieker', 'error');
+      }
+    } catch (e) {
+      showToast('Geocoding mislukt — check je internet', 'error');
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '📍 Zoek'; }
+  }
+
   async function setRepertoireMode(mode) {
     if (!currentGig) return;
     await db.from('gigs').update({ repertoire_mode: mode }).eq('id', currentGig.id);

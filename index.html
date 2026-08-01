@@ -635,15 +635,18 @@
           <div id="settings-loc-physical-fields">
             <div class="input-group" style="margin-bottom:8px;">
               <label class="input-label" style="font-size:10px;">Adres</label>
-              <input type="text" class="input-field" id="settings-location-address" placeholder="Straat, stad">
+              <div style="display:flex;gap:6px;">
+                <input type="text" class="input-field" id="settings-location-address" placeholder="Straat, stad" style="flex:1;">
+                <button class="btn btn-secondary" style="padding:7px 12px;font-size:11px;white-space:nowrap;" onclick="geocodeAddress()" id="btn-geocode">📍 Zoek</button>
+              </div>
             </div>
             <div style="display:flex;gap:8px;">
               <div class="input-group" style="flex:1;margin-bottom:0;">
-                <label class="input-label" style="font-size:10px;">Lat (optioneel)</label>
+                <label class="input-label" style="font-size:10px;">Lat</label>
                 <input type="number" class="input-field" id="settings-location-lat" placeholder="52.3676" step="any">
               </div>
               <div class="input-group" style="flex:1;margin-bottom:0;">
-                <label class="input-label" style="font-size:10px;">Lng (optioneel)</label>
+                <label class="input-label" style="font-size:10px;">Lng</label>
                 <input type="number" class="input-field" id="settings-location-lng" placeholder="4.9041" step="any">
               </div>
             </div>
@@ -822,15 +825,18 @@
       <div id="new-loc-physical-fields">
         <div class="input-group" style="margin-bottom:8px;">
           <label class="input-label" style="font-size:10px;">Adres</label>
-          <input type="text" class="input-field" id="new-location-address" placeholder="Straat, stad">
+          <div style="display:flex;gap:6px;">
+            <input type="text" class="input-field" id="new-location-address" placeholder="Straat, stad" style="flex:1;">
+            <button class="btn btn-secondary" style="padding:7px 12px;font-size:11px;white-space:nowrap;" onclick="geocodeAddress('new')" id="btn-geocode-new">📍 Zoek</button>
+          </div>
         </div>
         <div style="display:flex;gap:8px;">
           <div class="input-group" style="flex:1;margin-bottom:0;">
-            <label class="input-label" style="font-size:10px;">Lat (optioneel)</label>
+            <label class="input-label" style="font-size:10px;">Lat</label>
             <input type="number" class="input-field" id="new-location-lat" placeholder="52.3676" step="any">
           </div>
           <div class="input-group" style="flex:1;margin-bottom:0;">
-            <label class="input-label" style="font-size:10px;">Lng (optioneel)</label>
+            <label class="input-label" style="font-size:10px;">Lng</label>
             <input type="number" class="input-field" id="new-location-lng" placeholder="4.9041" step="any">
           </div>
         </div>
