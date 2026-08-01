@@ -283,7 +283,7 @@
   let artistPendingAuthUser = null;
   let queueSortMode    = 'chrono'; // chrono | popular | custom
   let queueCustomOrder = [];       // song_id array voor eigen volgorde
-  let songSortMode     = 'alpha';  // alpha | recent
+  let songSortMode     = 'recent';  // alpha | artist | recent
   let songFilterCore   = false;    // true = alleen vast repertoire tonen
 
   async function sendArtistOTP() {
