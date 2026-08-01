@@ -285,6 +285,7 @@
   let queueCustomOrder = [];       // song_id array voor eigen volgorde
   let songSortMode     = 'recent';  // alpha | artist | recent
   let songFilterCore   = false;    // true = alleen vast repertoire tonen
+  let sbSortMode       = 'recent'; // alpha | artist | recent (artiest songbook)
 
   async function sendArtistOTP() {
     const email = document.getElementById('login-email').value.trim();
@@ -1973,10 +1974,20 @@
 
   function filterSongbook(query) {
     const q = query.toLowerCase();
-    // Filter op naam/artiest maar behoud alle niveaus (actief, gig-uit, gearchiveerd)
     const filtered = q ? allSongs.filter(s =>
       s.title?.toLowerCase().includes(q) || s.original_artist?.toLowerCase().includes(q)) : allSongs;
     renderSongbook(filtered);
+  }
+
+  function setSbSort(mode, btn) {
+    sbSortMode = mode;
+    document.querySelectorAll('#sb-sort-alpha, #sb-sort-artist, #sb-sort-recent').forEach(b => {
+      b.className = 'badge';
+      b.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);';
+    });
+    btn.className = 'badge badge-neon';
+    btn.style.cssText = 'cursor:pointer;padding:5px 12px;font-size:11px;';
+    filterSongbook(document.getElementById('songbook-search')?.value || '');
   }
 
   function renderSongbook(songs) {
@@ -1985,9 +1996,19 @@
       list.innerHTML = `<div class="empty-state"><p>${t('empty-songbook')}</p></div>`; return;
     }
 
-    const core     = songs.filter(s => (s.song_category || 'optional') === 'core');
-    const optional = songs.filter(s => (s.song_category || 'optional') === 'optional');
-    const archived = songs.filter(s => (s.song_category || 'optional') === 'archived');
+    const sorted = [...songs].sort((a, b) => {
+      if (sbSortMode === 'recent') return (b.id || 0) - (a.id || 0);
+      if (sbSortMode === 'artist') {
+        const ca = (a.original_artist || '').localeCompare(b.original_artist || '');
+        if (ca !== 0) return ca;
+        return (a.title || '').localeCompare(b.title || '');
+      }
+      return (a.title || '').localeCompare(b.title || '');
+    });
+
+    const core     = sorted.filter(s => (s.song_category || 'optional') === 'core');
+    const optional = sorted.filter(s => (s.song_category || 'optional') === 'optional');
+    const archived = sorted.filter(s => (s.song_category || 'optional') === 'archived');
 
     const renderCard = (song) => {
       const cat       = song.song_category || 'optional';

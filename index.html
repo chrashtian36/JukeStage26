@@ -513,6 +513,11 @@
         <button class="mode-btn" id="sb-mode-btn-core" onclick="setRepertoireMode('core')">⭐ Alleen vast</button>
         <button class="mode-btn" id="sb-mode-btn-full" onclick="setRepertoireMode('full')">🎵 Volledig</button>
       </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+        <button class="badge" style="cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);" id="sb-sort-alpha" onclick="setSbSort('alpha',this)">A–Z</button>
+        <button class="badge" style="cursor:pointer;padding:5px 12px;font-size:11px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);" id="sb-sort-artist" onclick="setSbSort('artist',this)">Artiest A–Z</button>
+        <button class="badge badge-neon" style="cursor:pointer;padding:5px 12px;font-size:11px;" id="sb-sort-recent" onclick="setSbSort('recent',this)">🕒 Nieuw toegevoegd</button>
+      </div>
       <div class="search-wrap">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" class="search-input" placeholder="Zoek in je songbook..." id="songbook-search" data-i18n-ph="ph-search-songbook" oninput="filterSongbook(this.value)">
