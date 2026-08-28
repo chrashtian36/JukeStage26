@@ -684,7 +684,7 @@
     // Status-rij: "Live nu bezig" / "Stemmen open vanaf [datum]" / gepland tijdstip
     const statusRow = document.getElementById('voter-gig-status-row');
     if (statusRow) {
-      const localeMap = { nl:'nl-NL', en:'en-GB', fr:'fr-FR', de:'de-DE', es:'es-ES', mg:'fr-FR' };
+      const localeMap = { nl:'nl-NL', en:'en-GB', fr:'fr-FR', de:'de-DE', es:'es-ES', it:'it-IT', mg:'fr-FR' };
       const dateLocale = localeMap[currentLang] || 'nl-NL';
       const parts = [];
       if (currentGig.is_live) {
