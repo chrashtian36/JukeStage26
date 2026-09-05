@@ -44,7 +44,7 @@
           path: window.location.pathname,
           referrer: document.referrer || null,
           language: (typeof currentLang !== 'undefined' ? currentLang : null),
-          event_data: extra
+          event_data: { name: voterSession?.display_name || currentUser?.name || null, ...extra }
         }
       }).catch(e => console.warn('[analytics] log-event mislukt:', e?.message || e));
     } catch (e) {
@@ -3568,9 +3568,10 @@
       ? data.recent.map(r => {
           const time = new Date(r.created_at).toLocaleString('nl-NL');
           const loc = [r.city, r.country].filter(Boolean).join(', ');
+          const name = r.event_data?.name || r.event_data?.display_name || '';
           const extra = r.event_data?.screen || r.event_data?.language || r.event_data?.title || '';
           return `<div style="padding:6px 0;border-bottom:1px solid var(--border);">
-            <span style="color:var(--neon2);">${r.event_type}</span>${extra ? ' · ' + extra : ''}${loc ? ' · ' + loc : ''}
+            <span style="color:var(--neon2);">${r.event_type}</span>${name ? ' · ' + name : ''}${extra ? ' · ' + extra : ''}${loc ? ' · ' + loc : ''}
             <div style="color:var(--muted);font-size:10px;">${time}</div>
           </div>`;
         }).join('')
