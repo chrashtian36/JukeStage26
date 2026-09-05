@@ -96,8 +96,11 @@ Deno.serve(async (req) => {
     const ip = (req.headers.get("x-forwarded-for") || "").split(",")[0].trim() || null;
     const userAgent = req.headers.get("user-agent") || null;
 
+    // Geo is per sessie relevant, niet per actie — alleen opzoeken bij
+    // session_start voorkomt onnodige lookup-calls bij drukte (elke schermwissel,
+    // stem of aanvraag zou anders ook een lookup triggeren).
     let geo: Geo = { country: null, region: null, city: null };
-    if (ip) {
+    if (ip && event_type === "session_start") {
       const cached = geoCache.get(ip);
       if (cached) {
         geo = cached;

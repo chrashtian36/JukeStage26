@@ -115,12 +115,58 @@ Deno.serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(50);
 
+    // Vul de naam aan voor events die nog anoniem waren (bv. session_start,
+    // vóórdat iemand had ingelogd) door dezelfde sessie op te zoeken op een
+    // moment dat de naam al wel bekend was.
+    const missingSessionIds = Array.from(new Set(
+      (recent || [])
+        .filter((r: any) => !r.event_data?.name && !r.event_data?.display_name)
+        .map((r: any) => r.session_id)
+    ));
+
+    const nameBySession: Record<string, string> = {};
+    if (missingSessionIds.length > 0) {
+      const { data: nameRows } = await admin.from("analytics_events")
+        .select("session_id, event_data")
+        .in("session_id", missingSessionIds)
+        .not("event_data->>name", "is", null);
+      (nameRows || []).forEach((r: any) => {
+        if (!nameBySession[r.session_id] && r.event_data?.name) {
+          nameBySession[r.session_id] = r.event_data.name;
+        }
+      });
+    }
+
+    // Geo wordt sinds kort alleen bij session_start opgezocht (performance —
+    // zie log-event); voor de weergave hier koppelen we 'm terug naar de
+    // andere events van diezelfde sessie.
+    const missingGeoSessionIds = Array.from(new Set(
+      (recent || []).filter((r: any) => !r.country).map((r: any) => r.session_id)
+    ));
+    const geoBySession: Record<string, { country: string | null; city: string | null }> = {};
+    if (missingGeoSessionIds.length > 0) {
+      const { data: geoRowsForSessions } = await admin.from("analytics_events")
+        .select("session_id, country, city")
+        .in("session_id", missingGeoSessionIds)
+        .not("country", "is", null);
+      (geoRowsForSessions || []).forEach((r: any) => {
+        if (!geoBySession[r.session_id]) geoBySession[r.session_id] = { country: r.country, city: r.city };
+      });
+    }
+
+    const recentWithNames = (recent || []).map((r: any) => ({
+      ...r,
+      resolved_name: r.event_data?.name || r.event_data?.display_name || nameBySession[r.session_id] || null,
+      resolved_country: r.country || geoBySession[r.session_id]?.country || null,
+      resolved_city: r.city || geoBySession[r.session_id]?.city || null,
+    }));
+
     return json({
       totals: { today, d7: d7count, d30: d30count, all },
       geo,
       languages,
       events,
-      recent: recent || [],
+      recent: recentWithNames,
     });
   } catch (e) {
     console.error("[get-analytics-summary] exception:", e);
