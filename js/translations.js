@@ -1413,6 +1413,7 @@
 
   function setLang(lang) {
     currentLang = lang;
+    if (typeof logEvent === 'function') logEvent('language_selected', { language: lang });
     try { localStorage.setItem('jukestage_lang', lang); } catch(e) {}
     document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.lang-btn').forEach(b => {

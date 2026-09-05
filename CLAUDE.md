@@ -13,7 +13,7 @@ JukeStage is a real-time interactive jukebox web app for live events (`jukestage
 - **Frontend**: Vanilla JS + HTML + CSS, no framework, no build step
 - **Backend**: Supabase (PostgreSQL + Auth + Realtime WebSocket subscriptions)
 - **Hosting**: Vercel (SPA — all routes rewrite to `index.html` via `vercel.json`)
-- **Edge Function**: Supabase Deno function (`supabase/functions/fetch-genius-urls/`) for Genius API lyrics backfill
+- **Edge Functions**: Supabase Deno functions in `supabase/functions/` — see Edge Functions section below
 - **PWA**: `manifest.json` + mobile meta tags for standalone mode
 
 ## File Structure
@@ -81,6 +81,7 @@ Artists have a `tier` field on the `artists` table: `'free'` (default) or `'pro'
 | `artists` | Artist/band profile with `name`, `tier`, `subscription_valid_until` |
 | `users` | App user record linking Supabase auth (`auth_id`) to app role/name |
 | `user_artists` | Many-to-many: links `users` to `artists` |
+| `analytics_events` | Visitor/usage logging: session journey, geo, language, QR arrival, logins, requests/votes/messages (see Analytics below) |
 
 All tables use Row-Level Security (RLS).
 
@@ -89,6 +90,17 @@ All tables use Row-Level Security (RLS).
 
 ### QR links
 Voter QR links use `https://jukestage.live/?gig=<qr_token>`. When a voter arrives via QR, `arrivedViaQR = true` locks them to that gig.
+
+### Analytics
+`logEvent(eventType, extraData, overrides)` in `app.js` fires-and-forgets a call to the `log-event` edge function, which writes a row to `analytics_events` using the service-role key (clients never read/write that table directly — RLS is on with no policies). Every event carries a `session_id` (random UUID cached in `sessionStorage`, so it groups everything one visitor does in one browser tab), plus `gig_id` / `voter_session_id` / `artist_id` when known, and geo (`country`/`region`/`city`) resolved server-side from the request IP via ipapi.co.
+
+Logged event types: `session_start` (on app boot, includes referrer + active language), `view_screen` (every `showView`/`showVoterScreen`/`showArtistScreen` call — this is how you reconstruct someone's route through the app), `qr_arrival`, `language_selected` (fired from `setLang` in `translations.js`), `voter_login_success`, `artist_login_success`, `artist_signup`, `song_request`, `vote`, `message_sent`, `rating_submitted`. The edge function rejects any other `event_type`.
+
+Query examples live as SQL comments/views in `supabase/migrations/20260905000000_add_analytics_events.sql` (`analytics_geo_summary`, `analytics_language_summary`). To see one visitor's full journey: `select created_at, event_type, event_data from analytics_events where session_id = '...' order by created_at`.
+
+No new secrets needed — `log-event` reuses `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`, already set for `fetch-genius-urls`. Deploy with `supabase functions deploy log-event` and apply the migration.
+
+**In-app dashboard**: an "Analytics" tab in the artist panel (`atab-analytics` in `index.html`, only shown when `currentUser.role === 'admin'`) calls the `get-analytics-summary` edge function, which checks the caller is an admin (via their JWT + the `users` table) before returning aggregated totals/geo/language/event-type breakdowns and a recent-activity feed. `loadAnalyticsSummary()` in `app.js` renders it.
 
 ## Deployment
 
@@ -100,6 +112,8 @@ Push to `main` → auto-deploys to Vercel. Edge function secrets (`GENIUS_ACCESS
 |---|---|---|
 | `fetch-genius-urls` | Handmatig | Genius lyrics-URLs backfillen voor songs |
 | `notify-artist-signup` | Aangeroepen vanuit `saveArtistProfile()` in `app.js` | E-mailnotificatie bij nieuwe artiest-signup |
+| `log-event` | Aangeroepen vanuit `logEvent()` in `app.js` (op vrijwel elke user-actie) | Bezoekers-/gedragslogging wegschrijven naar `analytics_events`, inclusief geo-lookup |
+| `get-analytics-summary` | Aangeroepen vanuit `loadAnalyticsSummary()` bij het openen van het Analytics-tabblad | Geaggregeerde bezoekersstatistieken teruggeven (admin-only, checkt `users.role`) |
 
 ### notify-artist-signup — eenmalige setup
 

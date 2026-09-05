@@ -456,6 +456,7 @@
 
     <!-- Inner tabs -->
     <div class="inner-tabs">
+      <div class="itab" onclick="switchArtistTab('analytics',this)" id="itab-analytics-btn" style="display:none;">📊 Analytics</div>
       <div class="itab active" onclick="switchArtistTab('queue',this)" id="atab-lbl-queue">Wachtrij</div>
       <div class="itab" onclick="switchArtistTab('requests',this)" id="atab-lbl-requests">Aanvragen <span id="requests-pending-count" style="display:none;background:var(--neon3);color:white;border-radius:100px;padding:1px 5px;font-size:9px;margin-left:2px;"></span></div>
       <div class="itab" onclick="switchArtistTab('songbook',this)" id="atab-lbl-songbook">Songbook</div>
@@ -680,6 +681,40 @@
         <button class="btn btn-primary btn-full" style="margin-top:14px;" onclick="saveGigSettings()" id="btn-save-settings">Instellingen Opslaan</button>
         <button class="btn btn-danger btn-full" style="margin-top:8px;" onclick="closeGig()" id="btn-close-gig">Gig Afsluiten</button>
         <button class="btn btn-secondary btn-full" style="margin-top:8px;display:none;" onclick="reopenGig()" id="btn-reopen-gig">↺ Gig Heropenen</button>
+      </div>
+    </div>
+
+    <!-- ANALYTICS TAB (alleen zichtbaar voor role=admin) -->
+    <div id="atab-analytics" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 12px;">
+        <div style="font-family:var(--font-retro);font-size:11px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;">Bezoekersstatistieken</div>
+        <button class="btn btn-secondary" style="padding:6px 12px;font-size:10px;" onclick="loadAnalyticsSummary()">↺ Ververs</button>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="an-stat-today">–</div><div class="stat-label">Vandaag</div></div>
+        <div class="stat-card"><div class="stat-value" id="an-stat-7d">–</div><div class="stat-label">7 dagen</div></div>
+        <div class="stat-card"><div class="stat-value" id="an-stat-30d">–</div><div class="stat-label">30 dagen</div></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label class="input-label">Herkomst (30 dagen)</label>
+        <div id="an-geo-list" style="margin-top:6px;">Laden...</div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label class="input-label">Taal (30 dagen)</label>
+        <div id="an-lang-list" style="margin-top:6px;">Laden...</div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label class="input-label">Acties (30 dagen)</label>
+        <div id="an-events-list" style="margin-top:6px;">Laden...</div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label class="input-label">Recente activiteit</label>
+        <div id="an-recent-list" style="margin-top:6px;font-size:11px;color:var(--muted);max-height:320px;overflow-y:auto;"></div>
       </div>
     </div>
   </div>

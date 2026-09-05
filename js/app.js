@@ -16,6 +16,43 @@
   });
 
   // ════════════════════════════════════════════
+  // ANALYTICS / LOGGING
+  // ════════════════════════════════════════════
+  function getAnalyticsSessionId() {
+    try {
+      let sid = sessionStorage.getItem('js_analytics_sid');
+      if (!sid) {
+        sid = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+        sessionStorage.setItem('js_analytics_sid', sid);
+      }
+      return sid;
+    } catch (e) {
+      return 'no-storage';
+    }
+  }
+
+  // Fire-and-forget: mag nooit de UI blokkeren of een fout tonen aan de bezoeker.
+  function logEvent(eventType, extra = {}, overrides = {}) {
+    try {
+      db.functions.invoke('log-event', {
+        body: {
+          event_type: eventType,
+          session_id: getAnalyticsSessionId(),
+          gig_id: overrides.gig_id || currentGig?.id || null,
+          voter_session_id: voterSession?.id || null,
+          artist_id: currentArtist?.id || null,
+          path: window.location.pathname,
+          referrer: document.referrer || null,
+          language: (typeof currentLang !== 'undefined' ? currentLang : null),
+          event_data: extra
+        }
+      }).catch(e => console.warn('[analytics] log-event mislukt:', e?.message || e));
+    } catch (e) {
+      console.warn('[analytics] logEvent exception:', e);
+    }
+  }
+
+  // ════════════════════════════════════════════
   // STATE
   // ════════════════════════════════════════════
   let currentUser   = null;
@@ -36,6 +73,7 @@
   // VOTER AUTH — MAGIC LINK
   // ════════════════════════════════════════════
   function showVoterScreen(name) {
+    logEvent('view_screen', { screen: 'voter-' + name });
     ['choice','quick','email','code','newname'].forEach(s => {
       const el = document.getElementById('voter-screen-' + s);
       if (el) el.style.display = s === name ? 'block' : 'none';
@@ -145,6 +183,7 @@
       .insert({ gig_id: gig.id, display_name: displayName, auth_user_id: voterAuthUser?.id || null })
       .select('*').single();
     voterSession = sess;
+    logEvent('voter_login_success', { display_name: displayName });
     showView('view-voter');
     const logoutBtn = document.getElementById('voter-logout-btn');
     if (logoutBtn) logoutBtn.style.display = voterAuthUser ? '' : 'none';
@@ -220,6 +259,7 @@
     if (t) { t.classList.add('active'); window.scrollTo(0,0); }
     const intro = document.getElementById('landing-intro');
     if (intro) intro.style.display = id === 'view-landing' ? '' : 'none';
+    logEvent('view_screen', { screen: id });
   }
 
   // ════════════════════════════════════════════
@@ -250,6 +290,7 @@
         badge.className = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
         if (currentUser.role === 'admin') {
           document.getElementById('admin-direct-add').style.display = 'block';
+          document.getElementById('itab-analytics-btn').style.display = '';
         }
         showView('view-artist');
         await loadArtistData();
@@ -270,6 +311,7 @@
     if (intro) intro.style.display = '';
   }
   function showArtistScreen(name) {
+    logEvent('view_screen', { screen: 'artist-' + name });
     ['email','code','newname'].forEach(s => {
       const el = document.getElementById('artist-screen-' + s);
       if (el) el.style.display = s === name ? 'block' : 'none';
@@ -365,6 +407,7 @@
         role: userData.role || 'artist',
         name: userData.display_name || artistPendingEmail
       };
+      logEvent('artist_login_success', { role: currentUser.role });
       showToast('Welkom terug! 🎸', 'success');
       _enterAsArtist();
     } else {
@@ -419,6 +462,7 @@
       role: 'artist',
       name
     };
+    logEvent('artist_signup', { role: 'artist' });
     showToast('Welkom bij JukeStage! 🎸', 'success');
     _enterAsArtist();
 
@@ -438,6 +482,7 @@
     badge.className   = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
     if (currentUser.role === 'admin') {
       document.getElementById('admin-direct-add').style.display = 'block';
+      document.getElementById('itab-analytics-btn').style.display = '';
     }
     showView('view-artist');
     loadArtistData();
@@ -468,7 +513,10 @@
       arrivedViaQR = true;
       try {
         const { data: gigData } = await db.from('gigs').select('*').eq('qr_token', gigToken).single();
-        if (gigData && gigData.status !== 'finished') { selectVoterGig(gigData); return; }
+        if (gigData && gigData.status !== 'finished') {
+          logEvent('qr_arrival', { gig_token: gigToken }, { gig_id: gigData.id });
+          selectVoterGig(gigData); return;
+        }
         pickArea.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--neon3);font-family:var(--font-retro);font-size:12px;">Deze gig is niet beschikbaar.</div>';
       } catch(e) {
         pickArea.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--neon3);font-family:var(--font-retro);font-size:12px;">Gig niet gevonden.</div>';
@@ -1071,6 +1119,7 @@
       btn.querySelector('svg').removeAttribute('stroke');
       countEl.textContent = parseInt(countEl.textContent) + 1;
       showToast('Stem uitgebracht! ❤️', 'success');
+      logEvent('vote', { action: 'add', request_id: cleanRequestId, gig_song_id: cleanGigSongId });
     } else {
       let deleteQ = db.from('votes').delete().eq('voter_session_id', voterSession.id);
       if (cleanRequestId) {
@@ -1084,6 +1133,7 @@
       btn.querySelector('svg').setAttribute('stroke', 'currentColor');
       countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
       showToast('Stem ingetrokken', '');
+      logEvent('vote', { action: 'remove', request_id: cleanRequestId, gig_song_id: cleanGigSongId });
     }
 
     btn.disabled = false;
@@ -1134,6 +1184,7 @@
         showToast('Aanvraag mislukt', 'error');
       } else {
         showToast('Nummer al in wachtrij — stem uitgebracht! ❤️', 'success');
+        logEvent('vote', { action: 'add', via: 'request_modal', song_id: currentRequestSong.songId });
       }
     } else {
       const { error } = await db.from('requests').insert({
@@ -1148,6 +1199,7 @@
         showToast('Aanvraag mislukt', 'error');
       } else {
         showToast('Aanvraag verzonden! 🎵', 'success');
+        logEvent('song_request', { song_id: currentRequestSong.songId, title: currentRequestSong.title });
         loadMyRequests(); // update "mijn aanvragen"
       }
     }
@@ -1171,6 +1223,7 @@
     if (error) { showToast('Kon bericht niet versturen', 'error'); return; }
     document.getElementById('voter-msg-text').value = '';
     showToast('Bericht verstuurd! 💬', 'success');
+    logEvent('message_sent', {});
   }
 
   // ════════════════════════════════════════════
@@ -1245,6 +1298,7 @@
       song_title: songTitle
     });
     if (error) { showToast('Kon review niet plaatsen', 'error'); return; }
+    logEvent('rating_submitted', { rating: currentRating || null, song_id: songId || null });
     document.getElementById('comment-author').value = '';
     document.getElementById('comment-text').value = '';
     setRating(0);
@@ -3382,7 +3436,8 @@
     'inbox': 'abtab-inbox',
     'settings': 'abtab-settings',
     'history': null,
-    'reviews': null
+    'reviews': null,
+    'analytics': null
   };
 
   function switchVoterTab(tab, innerEl, btabEl) {
@@ -3441,7 +3496,7 @@
   }
 
   function switchArtistTab(tab, innerEl, btabEl) {
-    ['queue','requests','songbook','inbox','history','settings','reviews'].forEach(t => {
+    ['queue','requests','songbook','inbox','history','settings','reviews','analytics'].forEach(t => {
       const el = document.getElementById('atab-' + t);
       if (el) el.style.display = t === tab ? 'block' : 'none';
     });
@@ -3454,12 +3509,72 @@
     const btab = btabEl || (btabId ? document.getElementById(btabId) : null);
     if (btab) btab.classList.add('active');
     if (tab === 'reviews') loadArtistReviews();
+    if (tab === 'analytics') loadAnalyticsSummary();
     if (tab === 'requests') {
       ['requests-pending-count', 'requests-pending-count-btab'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
     }
+  }
+
+  // ════════════════════════════════════════════
+  // ANALYTICS TAB (admin-only)
+  // ════════════════════════════════════════════
+  async function loadAnalyticsSummary() {
+    const geoEl     = document.getElementById('an-geo-list');
+    const langEl    = document.getElementById('an-lang-list');
+    const eventsEl  = document.getElementById('an-events-list');
+    const recentEl  = document.getElementById('an-recent-list');
+    if (!geoEl) return;
+    geoEl.innerHTML = langEl.innerHTML = eventsEl.innerHTML = 'Laden...';
+    recentEl.innerHTML = '';
+
+    const { data, error } = await db.functions.invoke('get-analytics-summary', {});
+    if (error || !data || data.error) {
+      const msg = data?.error === 'forbidden' ? 'Alleen voor admins.' : 'Kon data niet laden.';
+      geoEl.innerHTML = langEl.innerHTML = eventsEl.innerHTML = msg;
+      return;
+    }
+
+    document.getElementById('an-stat-today').textContent = data.totals.today;
+    document.getElementById('an-stat-7d').textContent = data.totals.d7;
+    document.getElementById('an-stat-30d').textContent = data.totals.d30;
+
+    const bar = (label, count, max) => {
+      const pct = max ? Math.round((count / max) * 100) : 0;
+      return `<div style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text);margin-bottom:3px;"><span>${label}</span><span>${count}</span></div>
+        <div style="background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:var(--neon);"></div></div>
+      </div>`;
+    };
+
+    const geoMax = Math.max(1, ...data.geo.map(g => g.sessions));
+    geoEl.innerHTML = data.geo.length
+      ? data.geo.map(g => bar(g.country || 'Onbekend', g.sessions, geoMax)).join('')
+      : '<div style="font-size:12px;color:var(--muted);">Nog geen data</div>';
+
+    const langMax = Math.max(1, ...data.languages.map(l => l.sessions));
+    langEl.innerHTML = data.languages.length
+      ? data.languages.map(l => bar((l.language || 'nl').toUpperCase(), l.sessions, langMax)).join('')
+      : '<div style="font-size:12px;color:var(--muted);">Nog geen data</div>';
+
+    const evMax = Math.max(1, ...data.events.map(e => e.count));
+    eventsEl.innerHTML = data.events.length
+      ? data.events.map(e => bar(e.event_type, e.count, evMax)).join('')
+      : '<div style="font-size:12px;color:var(--muted);">Nog geen data</div>';
+
+    recentEl.innerHTML = data.recent.length
+      ? data.recent.map(r => {
+          const time = new Date(r.created_at).toLocaleString('nl-NL');
+          const loc = [r.city, r.country].filter(Boolean).join(', ');
+          const extra = r.event_data?.screen || r.event_data?.language || r.event_data?.title || '';
+          return `<div style="padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="color:var(--neon2);">${r.event_type}</span>${extra ? ' · ' + extra : ''}${loc ? ' · ' + loc : ''}
+            <div style="color:var(--muted);font-size:10px;">${time}</div>
+          </div>`;
+        }).join('')
+      : '<div>Nog geen activiteit</div>';
   }
 
   function filterSongs(query) { loadVoterSongs(query); }
@@ -3573,6 +3688,8 @@
   // Restore saved language on load
   if (currentLang !== 'nl') setLang(currentLang);
 
+  logEvent('session_start', { referrer: document.referrer || null });
+
   (async () => {
     try {
     // Check URL voor gig token
@@ -3608,6 +3725,7 @@
       badge.className = currentUser.role === 'admin' ? 'badge badge-red' : 'badge badge-chrome';
       if (currentUser.role === 'admin') {
         document.getElementById('admin-direct-add').style.display = 'block';
+        document.getElementById('itab-analytics-btn').style.display = '';
       }
       showView('view-artist');
       await loadArtistData();

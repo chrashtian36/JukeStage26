@@ -9,3 +9,13 @@ entrypoint = "./functions/fetch-genius-urls/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/fetch-genius-urls/*.html" ]
+
+[functions.log-event]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/log-event/index.ts"
+
+[functions.get-analytics-summary]
+enabled = true
+verify_jwt = true
+entrypoint = "./functions/get-analytics-summary/index.ts"
