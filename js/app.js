@@ -703,6 +703,7 @@
     const { data: session } = await db.from('voter_sessions')
       .insert({ gig_id: gig.id, display_name: name }).select('*').single();
     voterSession = session;
+    logEvent('voter_login_success', { display_name: name, method: 'quick' });
 
     showView('view-voter');
     loadVoterGigInfo();
@@ -3441,6 +3442,7 @@
   };
 
   function switchVoterTab(tab, innerEl, btabEl) {
+    logEvent('view_screen', { screen: 'voter-tab-' + tab });
     ['queue','myrequests','request','messages','comments'].forEach(t => {
       const el = document.getElementById('vtab-' + t);
       if (el) el.style.display = t === tab ? 'block' : 'none';
@@ -3689,7 +3691,15 @@
   // Restore saved language on load
   if (currentLang !== 'nl') setLang(currentLang);
 
-  logEvent('session_start', { referrer: document.referrer || null });
+  // Eén session_start per browsersessie: een reload mag de sessietelling niet opblazen
+  try {
+    if (!sessionStorage.getItem('js_analytics_started')) {
+      sessionStorage.setItem('js_analytics_started', '1');
+      logEvent('session_start', { referrer: document.referrer || null });
+    }
+  } catch (e) {
+    logEvent('session_start', { referrer: document.referrer || null });
+  }
 
   (async () => {
     try {
